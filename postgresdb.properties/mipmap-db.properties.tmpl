@@ -1,0 +1,5 @@
+driver = org.postgresql.Driver
+uri = jdbc:postgresql://{{ .Env.mipmap_db_host }}:{{ default .Env.mipmap_db_port "5432" }}/
+username = {{ default .Env.mipmap_db_user "mipmap" }}
+password = {{ default .Env.mipmap_db_password "mipmap" }}
+mappingTask-DatabaseName = {{ default .Env.mipmap_db_name "mipmap" }}

@@ -1,0 +1,5 @@
+driver = org.postgresql.Driver
+uri = jdbc:postgresql://{{ .Env.i2b2_db_harmonized_host }}:{{ default .Env.i2b2_db_harmonized_port "5432" }}/
+username = {{ default .Env.i2b2_db_harmonized_user "i2b2" }}
+password = {{ default .Env.i2b2_db_harmonized_password "i2b2" }}
+mappingTask-DatabaseName = {{ default .Env.i2b2_db_harmonized_name "i2b2" }}
