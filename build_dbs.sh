@@ -1,15 +1,15 @@
 #! /bin/bash
 
 
-mipmap='mipmap'
+db_mipmap='mipmap'
 db_capture='i2b2_capture'
 db_harmonized='i2b2_harmonized' 
-container_name=<update with postgres name container>
+container_name="demo_postgres" # <update with postgres name container>
 
 if [ $1 = "mipmap"]; then
 # create mipmap database
-    echo "Creating $mipmap database"
-    docker exec -it $container_name psql -U postgres -d postgres -c "DROP DATABASE IF EXISTS $mipmap;"
+    echo "Creating $db_mipmap database"
+    docker exec -it $container_name psql -U postgres -d postgres -c "DROP DATABASE IF EXISTS $db_mipmap;"
     docker exec -it $container_name psql -U postgres -d postgres -c "CREATE DATABASE $mipmap;"
 fi
 

@@ -6,6 +6,7 @@ This is a EHR DataFactory template with the folders and scripts needed to run th
 
 Update the docker-compose.yml with the valid credentials and ports of the postgres container which is already been running in the hospital server.
 If the i2b2 databases hasn't been created yet, edit the build_dbs.sh and update the `container_name` with the postgres container that is running on the server.
+Also, update the postgres docker container details in ingestdata.sh 
 
 for creating the database used by MIPMapReduce
 ```shell
