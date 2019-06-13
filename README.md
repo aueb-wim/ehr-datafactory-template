@@ -14,28 +14,29 @@ If the i2b2 database hasn't been created yet, edit the `build_dbs.sh` and update
 
 Also, update the postgres docker container details in `ingestdata.sh`
 
-Copy and replace the mapping task configurations files from the mapping task design folder into the *preprocess_step*, *capture_step*, *harmonize_step* folders accordingly.
+Copy and replace the mapping task configuration files from the mapping task design folder into the *preprocess_step*, *capture_step*, *harmonize_step* folders accordingly.
 
-### DataFactory databases build
+### Creating empty DataFactory databases
 
-**Caution!** The following creation script drop any prexisting DataFactory database.
+**Caution!** The following creation script drop any prexisting DataFactory database. Skip this step if there is no such need *i.e. when importing a second batch of hospital data.*
 
-for creating all databases at once
+
+for droping and creating all databases at once
 ```shell
-$ sh build_dbs all
+$ sh build_dbs.sh all
 ```
 
-for creating the database used by MIPMapReduce
+for creating an empty database used by MIPMapReduce
 ```shell
 $ sh build_dbs.sh mipmap
 ```
 
-for creating the i2b2 capture database
+for creating am empty i2b2 capture database
 ```shell
 $ sh build_dbs capture
 ```
 
-for creating the i2b2 harmonize database
+for creating an empty i2b2 harmonize database
 ```shell
 $ sh build_dbs harmonize
 ```
