@@ -4,11 +4,17 @@
 
 This is a EHR DataFactory template with the folders and scripts needed to run the EHR DataFactory pipeline on a hospital server.
 
-## Instructions
+## Deployment and Configuration
+
+Clone this repo on the hospital server.
 
 Update the `docker-compose.yml` with the valid credentials and ports of the postgres container which has already been running on the hospital server.
+
 If the i2b2 database hasn't been created yet, edit the `build_dbs.sh` and update the `container_name` with the postgres container that is running on the server.
+
 Also, update the postgres docker container details in `ingestdata.sh`
+
+Copy and replace the mapping task configurations files from the mapping task design folder into the *preprocess_step*, *capture_step*, *harmonize_step* folders accordingly.
 
 ### DataFactory databases build
 
@@ -34,3 +40,59 @@ for creating the i2b2 harmonize database
 $ sh build_dbs harmonize
 ```
 
+## Running EHR DataFactory pipeline
+
+### Step_1 - preprocess step
+
+In DataFactory folder run
+
+```shell
+sh ingestdata.sh preprocess
+```
+
+Auxiliary files are created in the same folder where the hospital csv files are located.
+
+### Step_2 - capture step
+
+In DataFactory folder run 
+
+```shell
+sh ingestdata.sh capture
+```
+
+
+### Step_3 - harmonization step
+
+In DataFactory folder run
+
+```shell
+sh ingestdata.sh harmonize
+```
+
+### Step_4 - local data flattening step
+
+In DataFactory folder run 
+
+```shell
+sh ingestdata.sh export
+```
+
+harmonized_clinical_data.csv is created in the mipmap output folder 
+
+### Step_5 - Anonymization step
+
+In DataFactory folder run
+
+```shell
+sh anonymize.sh i2b2
+```
+
+### Step_6 - anonymized data flattening step
+
+In DataFactory folder run
+
+```shell
+sh anonymize.sh export
+```
+
+harmonized_clinical_anon_data.csv is created in the mipmap anonym_output folder
