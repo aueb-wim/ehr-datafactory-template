@@ -33,12 +33,12 @@ $ sh build_dbs.sh mipmap
 
 for creating am empty i2b2 capture database
 ```shell
-$ sh build_dbs capture
+$ sh build_dbs.sh capture
 ```
 
 for creating an empty i2b2 harmonize database
 ```shell
-$ sh build_dbs harmonize
+$ sh build_dbs.sh harmonize
 ```
 
 ## Running EHR DataFactory pipeline
