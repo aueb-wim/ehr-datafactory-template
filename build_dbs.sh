@@ -11,13 +11,11 @@ if [ -n $1 ]; then
     exit 1
 
 elif [ $1 = "all" ]; then
-    echo "Creating $db_mipmap database"
-    docker exec -it $container_name psql -U postgres -d postgres -c "DROP DATABASE IF EXISTS $db_mipmap;"
-    docker exec -it $container_name psql -U postgres -d postgres -c "CREATE DATABASE $mipmap;"
+    echo "Creating all ehr datafactory database"
     # create mipmap database
     echo "Creating $db_mipmap database"
     docker exec -it $container_name psql -U postgres -d postgres -c "DROP DATABASE IF EXISTS $db_mipmap;"
-    docker exec -it $container_name psql -U postgres -d postgres -c "CREATE DATABASE $mipmap;"
+    docker exec -it $container_name psql -U postgres -d postgres -c "CREATE DATABASE $db_mipmap;"
     # create and set up capture database
     echo "Creating $db_capture database"
     docker exec -it $container_name psql -U postgres -d postgres -c "DROP DATABASE IF EXISTS $db_capture;"
@@ -35,7 +33,7 @@ elif [ $1 = "mipmap"]; then
 # create mipmap database
     echo "Creating $db_mipmap database"
     docker exec -it $container_name psql -U postgres -d postgres -c "DROP DATABASE IF EXISTS $db_mipmap;"
-    docker exec -it $container_name psql -U postgres -d postgres -c "CREATE DATABASE $mipmap;"
+    docker exec -it $container_name psql -U postgres -d postgres -c "CREATE DATABASE $db_mipmap;"
 
 elif [ $1 = "capture"]; then
 # create and set up capture database
