@@ -1,29 +1,37 @@
 {
-    "ehr_folders":{
-        "source": "./source",
-        "dbproperties": "./postgresdb.properties",
-        "output": "./output",
-        "preprocess": "./preprocess_step",
-        "capture": "./capture_step",
-        "harmonize": "./harmonize_step",
-        "export": "./export_step"
-    },
-    "ehr_files":{
-        "export_csv": "harmonized_clinical_data.csv",
-        "pivoting_sql": "pivot_i2b2_MinDate_NEW19_a.sql"
-    },
-    "imaging_folders":{
-        "source": "./source_imaging",
-        "mapping": "./imaging_step"
+    "hospital_name": "MockHospital",
+    "input":{
+        "ehr_folder":"./source",
+        "imaging_folder":"./imaging_source"
 
     },
-    "anonymization_files": {
-        "anonymized_csv": "harmonized_clinical_anon_data.csv",
-        "anonymization_sql": "md5_anonymize_db_FR_ides.sql",
-        "pivoting_sql": "pivot_i2b2_MinDate_NEW19_a_fed.sql"
+    "mipmap":{
+        "dbproperties": "./postgresdb.properties",
+        "preprocess": "./mipmap_mappings/preprocess_step",
+        "capture": "./mipmap_mappings/capture_step",
+        "harmonize": "./mipmap_mappings/harmonize_step",
+        "imaging": "./mipmap_mappings/imaging_step",
+        "input_folders":{
+            "ehr":"./source",
+            "imaging":"./imaging_source",
+        },
+        "export": "./export_step"
     },
-    "anonymization_folders": {
-        "anonym_output": "./anonym_output"
+    "sql_script_folder":"./export_step",
+    "flatening":{
+        "export_csv_name": "harmonized_clinical_data.csv",
+        "output_folder": "./output",
+        "strategy":{
+            "simple":"pivot_i2b2_MinDate_NEW19_a.sql"
+        }
+    },
+    "anonymization":{
+        "anonymized_csv_name": "harmonized_clinical_anon_data.csv",
+        "anonymization_sql": "md5_anonymize_db_FR_ides.sql",
+        "strategy":{
+            "simple": "pivot_i2b2_MinDate_NEW19_a_fed.sql"
+        },
+        "output_folder": "./anonym_output"
     },
     "db_docker":{
         "container_name": "demo_postgres",

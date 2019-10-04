@@ -13,21 +13,21 @@ with open('config.json') as json_data_file:
     config = json.load(json_data_file)
 
 # DataFactory EHR folders
-source_root = os.path.abspath(config['ehr_folders']['source'])
-dbprop_folder = os.path.abspath(config['ehr_folders']['dbproperties'])
-output_root = os.path.abspath(config['ehr_folders']['output'])
-preprocess_root = os.path.abspath(config['ehr_folders']['preprocess'])
-capture_root = os.path.abspath(config['ehr_folders']['capture'])
-harmonize_root = os.path.abspath(config['ehr_folders']['harmonize'])
-export = os.path.abspath(config['ehr_folders']['export'])
+source_root = os.path.abspath(config['mipmap']['input_folders']['ehr'])
+dbprop_folder = os.path.abspath(config['mipmap']['dbproperties'])
+output_root = os.path.abspath(config['flatening']['output_folder'])
+preprocess_root = os.path.abspath(config['mipmap']['preprocess'])
+capture_root = os.path.abspath(config['mipmap']['capture'])
+harmonize_root = os.path.abspath(config['mipmap']['harmonize'])
+export = os.path.abspath(config['sql_script_folder'])
 
 
 
 # imaging etl folders (output of imaging pipeline)
-image_root = os.path.abspath(config['imaging_folders']['source'])
+image_root = os.path.abspath(config['mipmap']['input_folders']['imaging'])
 
 # anonymization files
-anonym_output_root = config['anonymization_folders']['anonym_output']
+anonym_output_root = config['anonymization']['output_folder']
 
 # get postgres container name
 container_name = config['db_docker']['container_name']
@@ -110,8 +110,8 @@ def anonymize_db(output_folder, csv_name):
     db_user = config['db_docker']['postgres_user']
     i2b2_source = config['db_docker']['harmonize_db']
     i2b2_anonym = config['db_docker']['anonymized_db']
-    anonym_sql = config['anonymization_files']['anonymization_sql']
-    pivoting_sql = config['anonymization_files']['pivoting_sql']
+    anonym_sql = config['anonymization']['anonymization_sql']
+    pivoting_sql = config['anonymization']['strategy']['simple']
     # drop the existing anonymized db and create a new one
     cmd_drop_db = 'psql -U %s -d postgres -c "DROP DATABASE IF EXIST %s;"' % (db_user, i2b2_anonym)
     pg_container.exec_run(cmd_drop_db)
@@ -157,16 +157,16 @@ def main():
         config_folder = os.path.join(harmonize_root, args.config)
         run_docker_compose(config_folder)
     elif args.step == 'imaging':
-        image_mapping = os.path.abspath(config['imaging_folders']['mapping'])
+        image_mapping = os.path.abspath(config['mipmap']['imaging'])
         run_docker_compose(image_mapping, source=args.source,
                            imaging=True)
     elif args.step == 'anonymize':
-        flat_anonym_csv = config['anonymization_files']['anonymized_csv']
+        flat_anonym_csv = config['anonymization']['anonymized_csv_name']
         output_folder = os.path.join(anonym_output_root, args.output)
         anonymize_db(output_folder, flat_anonym_csv)
     elif args.step == 'export':
-        flat_csv_name = config['ehr_files']['export_csv']
-        pivoting_sql = config['ehr_files']['pivoting_sql']
+        flat_csv_name = config['flatening']['export_csv_name']
+        pivoting_sql = config['flatening']['strategy']['simple']
         output_folder = os.path.join(output_root, args.output)
         export_csv(output_folder, flat_csv_name, pivoting_sql)
 

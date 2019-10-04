@@ -1,0 +1,9 @@
+[submodule "nmm-pipeline-nifti-organizer"]
+	path = nmm-pipeline-nifti-organizer
+	url = https://github.com/HBPMedical/nmm-pipeline-nifti-organizer.git
+[submodule "nmm-pipeline-output-merge"]
+	path = nmm-pipeline-output-merge
+	url = https://github.com/HBPMedical/nmm-pipeline-output-merge.git
+[submodule "mri-parallel-nmm-pipeline"]
+	path = mri-parallel-nmm-pipeline
+	url = https://github.com/HBPMedical/mri-parallel-nmm-pipeline.git

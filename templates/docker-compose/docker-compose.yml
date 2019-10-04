@@ -33,9 +33,9 @@ services:
     container_name: "i2b2-setup"
     command: "upgrade head"
     external_links:
-      - "demo_postgres:df_postgres"
+      - "{{ container_name }}:df_postgres"
     environment:
-      - DB_URL=postgresql://postgres:1234@df_postgres:5432/i2b2_capture
+      - DB_URL=postgresql://{{ postgres_user }}:{{ postgres_pwd }}@df_postgres:{{ postgres_port}}/{{ capture_db }}
     network_mode: bridge
 
 
@@ -44,9 +44,9 @@ services:
     container_name: "i2b2-setup-harmonized"
     command: "upgrade head"
     external_links:
-      - "demo_postgres:df_postgres"
+      - "{{ container_name }}:df_postgres"
     environment:
-      - DB_URL=postgresql://postgres:1234@df_postgres:5432/i2b2_harmonized
+      - DB_URL=postgresql://{{ postgres_user }}:{{ postgres_pwd }}@df_postgres:{{ postgres_port}}/{{ harmonize_db}}
     network_mode: bridge
 
 
@@ -60,21 +60,21 @@ services:
       - "${mipmap_target}:/opt/target:rw"
     environment:
       - mipmap_db_host=df_postgres
-      - mipmap_db_port=5432
-      - mipmap_db_name=mipmap
-      - mipmap_db_user=postgres
-      - mipmap_db_password=1234
+      - mipmap_db_port={{ postgres_port}}
+      - mipmap_db_name={{ mipmap_db }}
+      - mipmap_db_user={{ postgres_user }}
+      - mipmap_db_password={{ postgres_pwd }}
       - i2b2_db_host=df_postgres
-      - i2b2_db_port=5432
-      - i2b2_db_name=i2b2_capture
-      - i2b2_db_user=postgres
-      - i2b2_db_password=1234
+      - i2b2_db_port={{ postgres_port}}
+      - i2b2_db_name={{ capture_db }}
+      - i2b2_db_user={{ postgres_user }}
+      - i2b2_db_password={{ postgres_pwd }}
       - i2b2_db_harmonized_host=df_postgres
-      - i2b2_db_harmonized_port=5432
-      - i2b2_db_harmonized_name=i2b2_harmonized
-      - i2b2_db_harmonized_user=postgres
-      - i2b2_db_harmonized_password=1234
+      - i2b2_db_harmonized_port={{ postgres_port }}
+      - i2b2_db_harmonized_name={{ harmonize_db}}
+      - i2b2_db_harmonized_user={{ postgres_user }}
+      - i2b2_db_harmonized_password={{ postgres_pwd }}
     external_links:
-      - "demo_postgres:df_postgres"
+      - "{{ container_name }}:df_postgres"
     command: ['/opt/map/run.sh']
     network_mode: bridge
