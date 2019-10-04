@@ -1,0 +1,38 @@
+{
+    "ehr_folders":{
+        "source": "./source",
+        "dbproperties": "./postgresdb.properties",
+        "output": "./output",
+        "preprocess": "./preprocess_step",
+        "capture": "./capture_step",
+        "harmonize": "./harmonize_step",
+        "export": "./export_step"
+    },
+    "ehr_files":{
+        "export_csv": "harmonized_clinical_data.csv",
+        "pivoting_sql": "pivot_i2b2_MinDate_NEW19_a.sql"
+    },
+    "imaging_folders":{
+        "source": "./source_imaging",
+        "mapping": "./imaging_step"
+
+    },
+    "anonymization_files": {
+        "anonymized_csv": "harmonized_clinical_anon_data.csv",
+        "anonymization_sql": "md5_anonymize_db_FR_ides.sql",
+        "pivoting_sql": "pivot_i2b2_MinDate_NEW19_a_fed.sql"
+    },
+    "anonymization_folders": {
+        "anonym_output": "./anonym_output"
+    },
+    "db_docker":{
+        "container_name": "demo_postgres",
+        "postgres_user": "postgres",
+        "postgres_pwd": "1234",
+        "postgres_port": "5432",
+        "capture_db": "i2b2_capture",
+        "harmonize_db": "i2b2_harmonized",
+        "mipmap_db": "mipmap",
+        "anonymized_db": "i2b2_anonymized"
+    }
+}
