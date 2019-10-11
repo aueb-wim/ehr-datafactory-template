@@ -6,77 +6,20 @@ import json
 import tarfile
 import logging
 import docker
+from helpers_docker import get_from, copy_to
+from helpers_imaging import split_subjectcode
 
 
-# Get the DataFactory configuration
-with open('config.json') as json_data_file:
-    config = json.load(json_data_file)
-
-# DataFactory EHR folders
-source_root = os.path.abspath(config['mipmap']['input_folders']['ehr'])
-dbprop_folder = os.path.abspath(config['mipmap']['dbproperties'])
-output_root = os.path.abspath(config['flatening']['output_folder'])
-preprocess_root = os.path.abspath(config['mipmap']['preprocess'])
-capture_root = os.path.abspath(config['mipmap']['capture'])
-harmonize_root = os.path.abspath(config['mipmap']['harmonize'])
-export = os.path.abspath(config['sql_script_folder'])
-
-
-
-# imaging etl folders (output of imaging pipeline)
-image_root = os.path.abspath(config['mipmap']['input_folders']['imaging'])
-
-# anonymization files
-anonym_output_root = config['anonymization']['output_folder']
-
-# get postgres container name
-container_name = config['db_docker']['container_name']
-
-client = docker.from_env()
-try:
-    pg_container = client.containers.get(container_name)
-except:
-    logging.warning('Unable to find db container %s' % container_name)
-    exit()
-# set enviroment variables
-os.environ['mipmap_pgproperties'] = dbprop_folder
-
-
-def run_docker_compose(cnfg_folder, source=None, imaging=False):
-    if source:
-        if imaging:
-            source_path = os.path.join(image_root, source)
-        else:
-            source_path = os.path.join(source_root, source)
-        os.environ['mipmap_source'] = source_path
+def run_docker_compose(source_folder, cnfg_folder, dbprop_folder):
+    os.environ['mipmap_pgproperties'] = dbprop_folder
+    os.environ['mipmap_source'] = source_folder
     os.environ['mipmap_map'] = cnfg_folder
-    os.system('docker-compose run mipmap_etl')
-
-
-def copy_to(src, dst):
-    tar = tarfile.open(src + '.tar', mode='w')
-    try:
-        tar.add(src, arcname=os.path.basename(src))
-    finally:
-        tar.close()
-    data = open(src + '.tar', 'rb').read()
-    pg_container.put_archive(os.path.dirname(dst), data)
-    os.remove(src + '.tar')
-
-
-def get_from(src, dst):
-    bits, stats = pg_container.get_archive(src)
-    tmp_tar_path = os.path.join(dst, 'tmp.tar')
-    f = open(tmp_tar_path, 'wb')
-    for chunk in bits:
-        f.write(chunk)
-    f.close
-    tar = tarfile.open(tmp_tar_path)
-    tar.extractall(dst)
-    os.remove(tmp_tar_path)
+    os.system('docker-compose up mipmap_etl')
+    os.system('docker rm mipmap')
 
 
 def export_csv(output_folder, csv_name, sql_script):
+    """Exports a flat csv from i2b2"""
     db_user = config['db_docker']['postgres_user']
     i2b2_name = config['db_docker']['harmonize_db']
     logging.info('Performing EHR DataFactory export step')
@@ -88,10 +31,12 @@ def export_csv(output_folder, csv_name, sql_script):
         pass
     # Copy the sql script to the postgres container
     sql_script_path = os.path.join(export, sql_script)
-    copy_to(sql_script_path, '/tmp/')
+    copy_to(sql_script_path, '/tmp/', pg_container)
     print(os.path.abspath(os.path.dirname(__file__)))
     # run the sql script
-    cmd_sql = 'psql -q -U %s -d %s -f /tmp/%s' % (db_user, i2b2_name, sql_script)
+    cmd_sql = 'psql -q -U %s -d %s -f /tmp/%s' % (db_user,
+                                                  i2b2_name,
+                                                  sql_script)
     pg_container.exec_run(cmd_sql)
     # check if the output folder exist, create it otherwise
     if not os.path.exists(output_folder):
@@ -103,26 +48,31 @@ def export_csv(output_folder, csv_name, sql_script):
             print('Output directory %s is created' % output_folder)
     # copy the flatten csv to the Data Factory output folder
     docker_csv_path = '/tmp/%s' % csv_name
-    get_from(docker_csv_path, output_folder)
+    get_from(docker_csv_path, output_folder, pg_container)
 
 
 def anonymize_db(output_folder, csv_name):
+    """Anonymize the i2b2 database & exports in a flat csv"""
     db_user = config['db_docker']['postgres_user']
     i2b2_source = config['db_docker']['harmonize_db']
     i2b2_anonym = config['db_docker']['anonymized_db']
     anonym_sql = config['anonymization']['anonymization_sql']
     pivoting_sql = config['anonymization']['strategy']['simple']
+    anonymization_folder = os.path.abspath('./anonymization-4-federation')
     # drop the existing anonymized db and create a new one
-    cmd_drop_db = 'psql -U %s -d postgres -c "DROP DATABASE IF EXIST %s;"' % (db_user, i2b2_anonym)
+    cmd_drop_db = 'psql -U %s -d postgres -c "DROP DATABASE IF EXIST %s;"' % (db_user,
+                                                                              i2b2_anonym)
     pg_container.exec_run(cmd_drop_db)
     cmd_create_db = 'psql -U %s -d postgres -c "CREATE DATABASE %s WITH TEMPLATE %s;"' % (db_user, i2b2_anonym, i2b2_source)
     pg_container.exec_run(cmd_create_db)
     # copy the anonymization sql to the postgres container
-    sql_script_path = os.path.join(export, anonym_sql)
+    sql_script_path = os.path.join(anonymization_folder, anonym_sql)
     print(sql_script_path)
-    copy_to(sql_script_path, '/tmp/')
+    copy_to(sql_script_path, '/tmp/', pg_container)
     # run the anonymization sql script
-    cmd_sql = 'psql -q -U %s -d %s -f /tmp/%s' % (db_user, i2b2_anonym, anonym_sql)
+    cmd_sql = 'psql -q -U %s -d %s -f /tmp/%s' % (db_user,
+                                                  i2b2_anonym,
+                                                  anonym_sql)
     pg_container.exec_run(cmd_sql)
     export_csv(output_folder, csv_name, pivoting_sql)
 
@@ -131,6 +81,37 @@ def anonymize_db(output_folder, csv_name):
 # test_output = output_root+'/'
 # export_csv('./output/')
 # copy_to('./export_step/pivot_i2b2_MinDate_NEW19_a.sql', '/tmp/sql_script.sql')
+
+# GET DATAFACTORY CONFIGURATION
+with open('config.json') as json_data_file:
+    config = json.load(json_data_file)
+
+# EHR folders
+ehr_source_root = os.path.abspath(config['mipmap']['input_folders']['ehr'])
+dbprop_folder = os.path.abspath(config['mipmap']['dbproperties'])
+print(dbprop_folder)
+output_root = os.path.abspath(config['flatening']['output_folder'])
+preprocess_root = os.path.abspath(config['mipmap']['preprocess']['root'])
+capture_root = os.path.abspath(config['mipmap']['capture']['root'])
+harmonize_root = os.path.abspath(config['mipmap']['harmonize']['root'])
+export = os.path.abspath(config['sql_script_folder'])
+
+# IMAGING etl folders (output of imaging pipeline)
+imaging_source_root = os.path.abspath(config['mipmap']['input_folders']['imaging'])
+imaging_mapping_root = os.path.abspath(config['mipmap']['imaging']['root'])
+
+# ANONYMIZATION
+anonym_output_root = os.path.abspath(config['anonymization']['output_folder'])
+
+# POSTGRES DOCKER CONTAINER
+container_name = config['db_docker']['container_name']
+
+client = docker.from_env()
+try:
+    pg_container = client.containers.get(container_name)
+except:
+    logging.warning('Unable to find db container %s' % container_name)
+    exit()
 
 
 def main():
@@ -148,18 +129,28 @@ def main():
 
     args = parser.parse_args(sys.argv[1:])
     if args.step == 'preprocess':
+        source_folder = os.path.join(ehr_source_root, args.source)
         config_folder = os.path.join(preprocess_root, args.config)
-        run_docker_compose(config_folder, source=args.source)
+        run_docker_compose(source_folder, config_folder, dbprop_folder)
     elif args.step == 'capture':
+        source_folder = os.path.join(ehr_source_root, args.source)
         config_folder = os.path.join(capture_root, args.config)
-        run_docker_compose(config_folder, source=args.source)
+        run_docker_compose(source_folder, config_folder, dbprop_folder)
     elif args.step == 'harmonize':
+        source_folder = ehr_source_root
         config_folder = os.path.join(harmonize_root, args.config)
-        run_docker_compose(config_folder)
+        run_docker_compose(source_folder, config_folder, dbprop_folder)
     elif args.step == 'imaging':
-        image_mapping = os.path.abspath(config['mipmap']['imaging'])
-        run_docker_compose(image_mapping, source=args.source,
-                           imaging=True)
+        source_folder = os.path.join(imaging_source_root, args.source)
+        config_folder = os.path.join(imaging_mapping_root, args.config)
+        # process the volume.csv and split the subjectcode column into 
+        # PATIENT_ID and VISIT_ID columns, creates the volume_df.csv 
+        vfilename = config['mipmap']['imaging']['mapping']['input_files'][0]
+        pfilename = config['mipmap']['imaging']['mapping']['processed_files'][0]
+        inputpath = os.path.join(source_folder, vfilename)
+        outputpath = os.path.join(source_folder, pfilename)
+        split_subjectcode(inputpath, outputpath)
+        run_docker_compose(source_folder, config_folder, dbprop_folder)
     elif args.step == 'anonymize':
         flat_anonym_csv = config['anonymization']['anonymized_csv_name']
         output_folder = os.path.join(anonym_output_root, args.output)

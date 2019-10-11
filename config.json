@@ -1,37 +1,44 @@
 {
     "hospital_name": "MockHospital",
-    "input":{
-        "ehr_folder":"./source",
-        "imaging_folder":"./imaging_source"
-
-    },
     "mipmap":{
-        "dbproperties": "./postgresdb.properties",
-        "preprocess": "./mipmap_mappings/preprocess_step",
-        "capture": "./mipmap_mappings/capture_step",
-        "harmonize": "./mipmap_mappings/harmonize_step",
-        "imaging": "./mipmap_mappings/imaging_step",
-        "input_folders":{
-            "ehr":"./source",
-            "imaging":"./imaging_source",
+        "dbproperties": "/home/iosif/Documents/Github_repos/ehr-datafactory-template/postgresdb.properties",
+        "preprocess": {
+            "root":"/home/iosif/mappings/preprocess"
+        },            
+        "capture": {
+            "root": "/home/iosif/mappings/capture"
         },
-        "export": "./export_step"
+        "harmonize": {
+            "root": "/home/iosif/mappings/harmonize"
+        },
+        "imaging": {
+            "root": "/home/iosif/Documents/Github_repos/ehr-datafactory-template/mipmap_mappings/imaging_step",
+            "mapping": {
+                "input_files": ["volumes.csv", "mri_visits.csv"],
+                "processed_files" : ["volumes_df.csv"]
+            }
+        },
+        "input_folders":{
+            "ehr":"/home/iosif/data/ehr",
+            "imaging":"/home/iosif/data/imaging"
+        },
+        "export": "/home/iosif/Documents/Github_repos/ehr-datafactory-template/export_step"
     },
-    "sql_script_folder":"./export_step",
+    "sql_script_folder":"/home/iosif/Documents/Github_repos/ehr-datafactory-template/export_step",
     "flatening":{
         "export_csv_name": "harmonized_clinical_data.csv",
-        "output_folder": "./output",
+        "output_folder": "/home/iosif/Documents/Github_repos/ehr-datafactory-template/output",
         "strategy":{
             "simple":"pivot_i2b2_MinDate_NEW19_a.sql"
         }
     },
     "anonymization":{
         "anonymized_csv_name": "harmonized_clinical_anon_data.csv",
-        "anonymization_sql": "md5_anonymize_db_FR_ides.sql",
+        "anonymization_sql": "md5_anonymize_db.sql",
         "strategy":{
             "simple": "pivot_i2b2_MinDate_NEW19_a_fed.sql"
         },
-        "output_folder": "./anonym_output"
+        "output_folder": "/home/iosif/Documents/Github_repos/ehr-datafactory-template/anonym_output"
     },
     "db_docker":{
         "container_name": "demo_postgres",

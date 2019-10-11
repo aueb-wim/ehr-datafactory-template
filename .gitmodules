@@ -7,3 +7,6 @@
 [submodule "mri-parallel-nmm-pipeline"]
 	path = mri-parallel-nmm-pipeline
 	url = https://github.com/HBPMedical/mri-parallel-nmm-pipeline.git
+[submodule "anonymization-4-federation"]
+	path = anonymization-4-federation
+	url = https://github.com/aueb-wim/anonymization-4-federation.git

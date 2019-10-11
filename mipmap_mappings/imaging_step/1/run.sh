@@ -1,14 +1,14 @@
 #!/bin/sh
 
-dockerize -template /opt/map/imaging_map.xml.tmpl:/opt/map.xml
+dockerize -template /opt/map/map.xml.tmpl:/opt/map.xml
 dockerize -template /opt/postgresdb.properties/mipmap-db.properties.tmpl:/opt/postgresdb.properties/mipmap-db.properties
 dockerize -template /opt/postgresdb.properties/i2b2-db.properties.tmpl:/opt/postgresdb.properties/i2b2-db.properties
 
 
 
 
-echo 'Unpivoting imaging_data.csv'
-java -jar /opt/MIPMapReduced.jar -unpivot /opt/source/volumes.csv /opt/postgresdb.properties/mipmap-db.properties "attribute" /opt/map/selected_volumes.txt -u /opt/map/unpivot_volumes.txt
+echo 'Unpivoting volumes_df.csv'
+java -jar /opt/MIPMapReduced.jar -unpivot /opt/source/volumes_df.csv /opt/postgresdb.properties/mipmap-db.properties "Attribute" /opt/map/selectedVolumes.txt -u /opt/map/unpivotVolumes.txt
 
 
 echo 'generating patient_num and encounter_num'

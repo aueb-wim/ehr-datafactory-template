@@ -57,7 +57,6 @@ services:
       - "${mipmap_map}:/opt/map:rw"
       - "${mipmap_source}:/opt/source:rw"
       - "${mipmap_pgproperties}:/opt/postgresdb.properties:rw"
-      - "${mipmap_target}:/opt/target:rw"
     environment:
       - mipmap_db_host=df_postgres
       - mipmap_db_port={{ postgres_port}}

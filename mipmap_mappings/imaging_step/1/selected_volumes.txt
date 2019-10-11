@@ -1,2 +1,0 @@
-subjectcode
-visit_id
