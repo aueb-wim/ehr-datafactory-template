@@ -104,10 +104,10 @@ LOOP
   FOR p_num, this_num, thisdate, thisage IN
 				   SELECT patient_num, encounter_num, start_date, patient_age FROM visit_dimension
 				   WHERE patient_num=subjectcode AND (SELECT ABS(EXTRACT(epoch FROM (start_date-mridate))/(3600*4)))<=180  -- time interval less or equal than 180 days (6 months)
-			           AND encounter_num!=encounternummri
-				   ORDER BY (SELECT ABS(EXTRACT(epoch FROM (start_date-mridate))))
+			           AND encounter_num!=encounternummri 
+				   ORDER BY (SELECT ABS(EXTRACT(epoch FROM (start_date-mridate)))) DESC
   LOOP
-     IF this_num IN (SELECT * FROM valid_diagnosis_encounter_nums) THEN
+     IF (this_num IN (SELECT * FROM valid_diagnosis_encounter_nums)) THEN
          EXECUTE FORMAT('UPDATE temp_table SET encounter_num_diag = '||this_num||', diag_date = '''||thisdate||''', age_diag = '||thisage||' WHERE encounter_num_mri = ' || encounternummri);
 	 --raise notice 'found valid diagnosis for encounter_mri: %  ', encounternummri;
 	 EXECUTE FORMAT('UPDATE temp_table AS tt SET encounter_num_mmse = encounter_num FROM observation_fact AS obf

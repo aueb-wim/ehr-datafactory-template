@@ -4,54 +4,61 @@ import sys
 import argparse
 import json
 import tarfile
-import logging
 import docker
 from helpers_docker import get_from, copy_to
 from helpers_imaging import split_subjectcode
+from logger import LOGGER
+from anonymization-4-federation.anonymize_csv import anonymize_csv
 
 
 def run_docker_compose(source_folder, cnfg_folder, dbprop_folder):
     os.environ['mipmap_pgproperties'] = dbprop_folder
+    LOGGER.info('Mounting %s as source folder' % source_folder)
     os.environ['mipmap_source'] = source_folder
+    LOGGER.info('Mounting %s as mapping folder' % config_folder)
     os.environ['mipmap_map'] = cnfg_folder
+    LOGGER.info('Running... docker-compose up mipmap_etl')
     os.system('docker-compose up mipmap_etl')
+    LOGGER.info('Removing mipmap container')
     os.system('docker rm mipmap')
 
 
-def export_csv(output_folder, csv_name, sql_script):
+def export_csv(output_folder, csv_name, sql_script, container, config):
     """Exports a flat csv from i2b2"""
     db_user = config['db_docker']['postgres_user']
     i2b2_name = config['db_docker']['harmonize_db']
-    logging.info('Performing EHR DataFactory export step')
+    sql_folder = config['sql_scripts_folder']
+    LOGGER.info('Performing EHR DataFactory export step')
     # try to delete any existing flattened csv in postgres container
     try:
         cmd_rm_csv = 'rm -rf /tmp/%s' % csv_name
-        pg_container.exec_run(cmd_rm_csv)
+        container.exec_run(cmd_rm_csv)
     except:
         pass
     # Copy the sql script to the postgres container
-    sql_script_path = os.path.join(export, sql_script)
-    copy_to(sql_script_path, '/tmp/', pg_container)
-    print(os.path.abspath(os.path.dirname(__file__)))
+    sql_script_path = os.path.join(sql_folder, sql_script)
+    copy_to(sql_script_path, '/tmp/', container)
     # run the sql script
     cmd_sql = 'psql -q -U %s -d %s -f /tmp/%s' % (db_user,
                                                   i2b2_name,
                                                   sql_script)
-    pg_container.exec_run(cmd_sql)
+    LOGGER.info('Excecuting pivoting sql script...')
+    container.exec_run(cmd_sql)
     # check if the output folder exist, create it otherwise
     if not os.path.exists(output_folder):
         try:
             os.makedirs(output_folder)
         except OSError:
-            print('Creation of the output directory %s failed' % output_folder)
+            LOGGER.warning('Creation of the output directory %s failed' % output_folder)
         else:
-            print('Output directory %s is created' % output_folder)
+            LOGGER.info('Output directory %s is created' % output_folder)
     # copy the flatten csv to the Data Factory output folder
     docker_csv_path = '/tmp/%s' % csv_name
-    get_from(docker_csv_path, output_folder, pg_container)
+    get_from(docker_csv_path, output_folder, container)
+    LOGGER.info('Flat csv is saved in %s' % output_folder)
 
 
-def anonymize_db(output_folder, csv_name):
+def anonymize_db(output_folder, csv_name, container, config):
     """Anonymize the i2b2 database & exports in a flat csv"""
     db_user = config['db_docker']['postgres_user']
     i2b2_source = config['db_docker']['harmonize_db']
@@ -62,25 +69,24 @@ def anonymize_db(output_folder, csv_name):
     # drop the existing anonymized db and create a new one
     cmd_drop_db = 'psql -U %s -d postgres -c "DROP DATABASE IF EXIST %s;"' % (db_user,
                                                                               i2b2_anonym)
-    pg_container.exec_run(cmd_drop_db)
+    LOGGER.info('Dropping previous anonymized i2b2 database')
+    container.exec_run(cmd_drop_db)
     cmd_create_db = 'psql -U %s -d postgres -c "CREATE DATABASE %s WITH TEMPLATE %s;"' % (db_user, i2b2_anonym, i2b2_source)
-    pg_container.exec_run(cmd_create_db)
+    LOGGER.info('Copying i2b2 harmonized db')
+    container.exec_run(cmd_create_db)
     # copy the anonymization sql to the postgres container
     sql_script_path = os.path.join(anonymization_folder, anonym_sql)
-    print(sql_script_path)
-    copy_to(sql_script_path, '/tmp/', pg_container)
+    copy_to(sql_script_path, '/tmp/', container)
     # run the anonymization sql script
     cmd_sql = 'psql -q -U %s -d %s -f /tmp/%s' % (db_user,
                                                   i2b2_anonym,
                                                   anonym_sql)
-    pg_container.exec_run(cmd_sql)
-    export_csv(output_folder, csv_name, pivoting_sql)
+    LOGGER.info('Excecuting anonymization sql script...')
+    container.exec_run(cmd_sql)
+    export_csv(output_folder, csv_name, pivoting_sql, container, config)
 
 
-# run_docker_compose('./preprocess_step')
-# test_output = output_root+'/'
-# export_csv('./output/')
-# copy_to('./export_step/pivot_i2b2_MinDate_NEW19_a.sql', '/tmp/sql_script.sql')
+
 
 # GET DATAFACTORY CONFIGURATION
 with open('config.json') as json_data_file:
@@ -89,12 +95,11 @@ with open('config.json') as json_data_file:
 # EHR folders
 ehr_source_root = os.path.abspath(config['mipmap']['input_folders']['ehr'])
 dbprop_folder = os.path.abspath(config['mipmap']['dbproperties'])
-print(dbprop_folder)
 output_root = os.path.abspath(config['flatening']['output_folder'])
 preprocess_root = os.path.abspath(config['mipmap']['preprocess']['root'])
 capture_root = os.path.abspath(config['mipmap']['capture']['root'])
 harmonize_root = os.path.abspath(config['mipmap']['harmonize']['root'])
-export = os.path.abspath(config['sql_script_folder'])
+export = os.path.abspath(config['sql_scripts_folder'])
 
 # IMAGING etl folders (output of imaging pipeline)
 imaging_source_root = os.path.abspath(config['mipmap']['input_folders']['imaging'])
@@ -109,8 +114,9 @@ container_name = config['db_docker']['container_name']
 client = docker.from_env()
 try:
     pg_container = client.containers.get(container_name)
+    LOGGER.info('Found postgres container named %s' % container_name)
 except:
-    logging.warning('Unable to find db container %s' % container_name)
+    LOGGER.warning('Unable to find db container %s' % container_name)
     exit()
 
 
@@ -120,6 +126,8 @@ def main():
                                          'harmonize', 'export',
                                          'imaging', 'anonymize'],
                         help='select datafactory step')
+    parser.add_argument('-m', '--mode', choices=['csv', 'db'],
+                         help='anonymization file method')
     parser.add_argument('-s', '--source', type=str,
                         help='input folder for ehr csv file')
     parser.add_argument('-c', '--config', type=str,
@@ -142,24 +150,38 @@ def main():
         run_docker_compose(source_folder, config_folder, dbprop_folder)
     elif args.step == 'imaging':
         source_folder = os.path.join(imaging_source_root, args.source)
-        config_folder = os.path.join(imaging_mapping_root, args.config)
+        config_folder = imaging_mapping_root
         # process the volume.csv and split the subjectcode column into 
         # PATIENT_ID and VISIT_ID columns, creates the volume_df.csv 
         vfilename = config['mipmap']['imaging']['mapping']['input_files'][0]
         pfilename = config['mipmap']['imaging']['mapping']['processed_files'][0]
         inputpath = os.path.join(source_folder, vfilename)
         outputpath = os.path.join(source_folder, pfilename)
+        LOGGER.info('Spliting \"subjectcode\" column to \"PATIENT_ID\" & \"VISIT_ID\"')
         split_subjectcode(inputpath, outputpath)
+        LOGGER.info('New file stored in %s' % outputpath)
         run_docker_compose(source_folder, config_folder, dbprop_folder)
     elif args.step == 'anonymize':
         flat_anonym_csv = config['anonymization']['anonymized_csv_name']
         output_folder = os.path.join(anonym_output_root, args.output)
-        anonymize_db(output_folder, flat_anonym_csv)
+        if args.mode == 'db':
+            LOGGER.info('i2b2 db anonymization mode')
+            anonymize_db(output_folder, flat_anonym_csv, pg_container, config)
+        elif args.mode == 'csv':
+            LOGGER.info('csv anonymization mode')
+            flat_csv_name = config['flatening']['export_csv_name']
+            source_path = os.path.join(output_root, args.source, flat_csv_name)
+            output_path = os.path.join(output_folder, flat_anonym_csv)
+            anonymize_csv(source_path, output_path)
+            LOGGER.info('Anonymized csv is saved in %s' % output_path)
+        else:
+            LOGGER.warning('Please define anonymization mode, see -m keyword')
     elif args.step == 'export':
         flat_csv_name = config['flatening']['export_csv_name']
-        pivoting_sql = config['flatening']['strategy']['simple']
+        pivoting_sql = config['flatening']['strategy']['6months']
+        LOGGER.info('Selected merging strategy is the 6 months time window')
         output_folder = os.path.join(output_root, args.output)
-        export_csv(output_folder, flat_csv_name, pivoting_sql)
+        export_csv(output_folder, flat_csv_name, pivoting_sql, pg_container, config)
 
 if __name__ == '__main__':
     main()

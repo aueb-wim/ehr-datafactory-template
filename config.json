@@ -22,19 +22,20 @@
             "ehr":"/home/iosif/data/ehr",
             "imaging":"/home/iosif/data/imaging"
         },
-        "export": "/home/iosif/Documents/Github_repos/ehr-datafactory-template/export_step"
+        "output_folder":"/home/iosif/data/output"
     },
-    "sql_script_folder":"/home/iosif/Documents/Github_repos/ehr-datafactory-template/export_step",
+    "sql_scripts_folder":"/home/iosif/Documents/Github_repos/ehr-datafactory-template/export_step",
     "flatening":{
         "export_csv_name": "harmonized_clinical_data.csv",
         "output_folder": "/home/iosif/Documents/Github_repos/ehr-datafactory-template/output",
         "strategy":{
-            "simple":"pivot_i2b2_MinDate_NEW19_a.sql"
+            "simple":"pivot_i2b2_MinDate_NEW19_a.sql",
+            "6months": "pivot_i2b2_6_months_MRI_Diag.sql"
         }
     },
     "anonymization":{
         "anonymized_csv_name": "harmonized_clinical_anon_data.csv",
-        "anonymization_sql": "md5_anonymize_db.sql",
+        "anonymization_sql": "anonymize_db_ides.sql",
         "strategy":{
             "simple": "pivot_i2b2_MinDate_NEW19_a_fed.sql"
         },

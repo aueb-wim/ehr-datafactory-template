@@ -1,6 +1,6 @@
 import tarfile
 import os
-
+from logger import LOGGER
 
 def copy_to(src, dst, container):
     """Copies file from host to postgres container
@@ -26,10 +26,9 @@ def get_from(src, dst, container):
     :container: a docker py container object"""
     bits, stats = container.get_archive(src)
     tmp_tar_path = os.path.join(dst, 'tmp.tar')
-    f = open(tmp_tar_path, 'wb')
-    for chunk in bits:
-        f.write(chunk)
-    f.close
+    with open(tmp_tar_path, 'wb') as tmptar:
+        for chunk in bits:
+            tmptar.write(chunk)
     tar = tarfile.open(tmp_tar_path)
     tar.extractall(dst)
     os.remove(tmp_tar_path)
