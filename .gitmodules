@@ -7,3 +7,6 @@
 [submodule "mri_output_merge"]
 	path = mri_output_merge
 	url = https://github.com/HBPMedical/nmm-pipeline-output-merge.git
+[submodule "anonymization"]
+	path = anonymization
+	url = https://github.com/aueb-wim/anonymization-4-federation.git
