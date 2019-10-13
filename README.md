@@ -56,28 +56,6 @@ $ sh build_dbs.sh harmonize
 
 Copy and replace the mapping task configuration files from the mapping task design folder into the *preprocess_step*, *capture_step*, *harmonize_step* folders accordingly.
 
-### Creating empty DataFactory databases
-
-
-for droping and creating all databases at once
-```shell
-$ sh build_dbs.sh all
-```
-
-for creating an empty database used by MIPMapReduce
-```shell
-$ sh build_dbs.sh mipmap
-```
-
-for creating am empty i2b2 capture database
-```shell
-$ sh build_dbs.sh capture
-```
-
-for creating an empty i2b2 harmonize database
-```shell
-$ sh build_dbs.sh harmonize
-```
 
 ## Running DataFactory pipeline
 
