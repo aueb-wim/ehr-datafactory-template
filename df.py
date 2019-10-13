@@ -8,7 +8,7 @@ import docker
 from helpers_docker import get_from, copy_to
 from helpers_imaging import split_subjectcode
 from logger import LOGGER
-from anonymization-4-federation.anonymize_csv import anonymize_csv
+from anonymization.anonymize_csv import anonymize_csv
 
 
 def run_docker_compose(source_folder, cnfg_folder, dbprop_folder):
@@ -65,7 +65,7 @@ def anonymize_db(output_folder, csv_name, container, config):
     i2b2_anonym = config['db_docker']['anonymized_db']
     anonym_sql = config['anonymization']['anonymization_sql']
     pivoting_sql = config['anonymization']['strategy']['simple']
-    anonymization_folder = os.path.abspath('./anonymization-4-federation')
+    anonymization_folder = os.path.abspath('./anonymization')
     # drop the existing anonymized db and create a new one
     cmd_drop_db = 'psql -U %s -d postgres -c "DROP DATABASE IF EXIST %s;"' % (db_user,
                                                                               i2b2_anonym)
@@ -87,45 +87,43 @@ def anonymize_db(output_folder, csv_name, container, config):
 
 
 
-
-# GET DATAFACTORY CONFIGURATION
-with open('config.json') as json_data_file:
-    config = json.load(json_data_file)
-
-# EHR folders
-ehr_source_root = os.path.abspath(config['mipmap']['input_folders']['ehr'])
-dbprop_folder = os.path.abspath(config['mipmap']['dbproperties'])
-output_root = os.path.abspath(config['flatening']['output_folder'])
-preprocess_root = os.path.abspath(config['mipmap']['preprocess']['root'])
-capture_root = os.path.abspath(config['mipmap']['capture']['root'])
-harmonize_root = os.path.abspath(config['mipmap']['harmonize']['root'])
-export = os.path.abspath(config['sql_scripts_folder'])
-
-# IMAGING etl folders (output of imaging pipeline)
-imaging_source_root = os.path.abspath(config['mipmap']['input_folders']['imaging'])
-imaging_mapping_root = os.path.abspath(config['mipmap']['imaging']['root'])
-
-# ANONYMIZATION
-anonym_output_root = os.path.abspath(config['anonymization']['output_folder'])
-
-# POSTGRES DOCKER CONTAINER
-container_name = config['db_docker']['container_name']
-
-client = docker.from_env()
-try:
-    pg_container = client.containers.get(container_name)
-    LOGGER.info('Found postgres container named %s' % container_name)
-except:
-    LOGGER.warning('Unable to find db container %s' % container_name)
-    exit()
-
-
 def main():
+    # GET DATAFACTORY CONFIGURATION
+    with open('config.json') as json_data_file:
+        config = json.load(json_data_file)
+
+    # EHR folders
+    ehr_source_root = os.path.abspath(config['mipmap']['input_folders']['ehr'])
+    dbprop_folder = os.path.abspath(config['mipmap']['dbproperties'])
+    output_root = os.path.abspath(config['flatening']['output_folder'])
+    preprocess_root = os.path.abspath(config['mipmap']['preprocess']['root'])
+    capture_root = os.path.abspath(config['mipmap']['capture']['root'])
+    harmonize_root = os.path.abspath(config['mipmap']['harmonize']['root'])
+    export = os.path.abspath(config['sql_scripts_folder'])
+    # IMAGING etl folders (output of imaging pipeline)
+    imaging_source_root = os.path.abspath(config['mipmap']['input_folders']['imaging'])
+    imaging_mapping_root = os.path.abspath(config['mipmap']['imaging']['root'])
+    # ANONYMIZATION
+    anonym_output_root = os.path.abspath(config['anonymization']['output_folder'])
+    # POSTGRES DOCKER CONTAINER
+    container_name = config['db_docker']['container_name']
+    client = docker.from_env()
+    try:
+        pg_container = client.containers.get(container_name)
+        LOGGER.info('Found postgres container named %s' % container_name)
+    except:
+        LOGGER.warning('Unable to find db container %s' % container_name)
+        exit()
+
     parser = argparse.ArgumentParser(description='EHR datafactory cli')
     parser.add_argument('step', choices=['preprocess', 'capture',
                                          'harmonize', 'export',
-                                         'imaging', 'anonymize'],
+                                         'imaging', 'anonymize',
+                                         'mri'
+                                         ],
                         help='select datafactory step')
+    parser.add_argument('-t', '--type', choices=['nifti', 'dicom'],
+                        help='type of mri input files for nmm mri pipeline')
     parser.add_argument('-m', '--mode', choices=['csv', 'db'],
                          help='anonymization file method')
     parser.add_argument('-s', '--source', type=str,
@@ -172,7 +170,7 @@ def main():
             flat_csv_name = config['flatening']['export_csv_name']
             source_path = os.path.join(output_root, args.source, flat_csv_name)
             output_path = os.path.join(output_folder, flat_anonym_csv)
-            anonymize_csv(source_path, output_path)
+            anonymize_csv(source_path, output_path, columns=[0], method='sha3')
             LOGGER.info('Anonymized csv is saved in %s' % output_path)
         else:
             LOGGER.warning('Please define anonymization mode, see -m keyword')
@@ -182,6 +180,32 @@ def main():
         LOGGER.info('Selected merging strategy is the 6 months time window')
         output_folder = os.path.join(output_root, args.output)
         export_csv(output_folder, flat_csv_name, pivoting_sql, pg_container, config)
+    elif args.step == 'mri':
+        script_parallel_path = os.path.abspath('./mri_run_parallel')
+        script_merge_path = os.path.abspath('./mri_output_merge')
+        mri_raw_root = config['mri']['input_folders']['nifti']['raw']
+        mri_raw_folder = os.path.join(mri_raw_root, args.source)
+        mri_input_root = config['mri']['input_folders']['nifti']['root']
+        mri_input_folder = os.path.join(mri_input_root, args.source)
+        # Reorganize mri files 
+        LOGGER.info('Reorganizing nifti files in folder %s' % mri_input_folder)
+        run_cmd = 'python2 mri_nifti_reorganize/organizer.py %s %s' % (mri_raw_folder, mri_input_folder)
+        os.system(run_cmd)
+        # run matlab spm12 script
+        mri_output_spm12_root = config['mri']['output_folders']['spm12']
+        mri_output_spm12_folder = os.path.join(mri_output_spm12_root, args.source)
+        LOGGER.info('Running spm12 pipeline...')
+        LOGGER.info('Storing output files in %s' % mri_output_spm12_folder)
+        os.chdir(script_parallel_path)
+        run_cmd = 'python2 mri_parallel_preprocessing.py %s %s' % (mri_input_folder, mri_output_spm12_folder)
+        LOGGER.info('Executing...%s' % run_cmd)
+        os.system(run_cmd)
+        # merge the output into one csv
+        os.chdir(script_merge_path)        
+        imaging_source_path = os.path.join(imaging_source_root, args.source)
+        run_cmd = 'python2 merge.py %s %s' % (mri_output_spm12_folder, imaging_source_path)
+        LOGGER.info('Merging spm12 output pipeline into single csv file in folder %s' % imaging_source_path)
+        os.system(run_cmd)
 
 if __name__ == '__main__':
     main()

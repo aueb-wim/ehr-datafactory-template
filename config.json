@@ -50,5 +50,20 @@
         "harmonize_db": "i2b2_harmonized",
         "mipmap_db": "mipmap",
         "anonymized_db": "i2b2_anonymized"
+    },
+    "mri":{
+        "input_folders": {
+            "nifti": {
+                "raw" : "/home/iosif/data/mri/input/raw/nifti",
+                "root": "/home/iosif/data/mri/input/nifti"
+            },
+            "dicom": {
+                "raw": "/home/iosif/data/mri/input/raw/dicom",
+                "root": "/home/iosif/data/mri/input/dicom"
+            }
+        },
+        "output_folders": {
+            "spm12" : "/home/iosif/data/mri/output/spm12"
+        }
     }
 }

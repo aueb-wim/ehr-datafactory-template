@@ -52,9 +52,28 @@ def update_image_mapping(configdict):
     template2.stream(vars).dump(encounterprop_fp)
 
 
+def update_bash_scripts(config):
+    LOGGER.info('Updating bash script for building df dbs')
+    d_config = config['db_docker']
+    my_path = os.path.abspath(os.path.dirname(__file__))
+    env_path = os.path.join(my_path, 'templates')
+    env = Environment(loader=FileSystemLoader(env_path))
+    template = env.get_template(os.path.join('bash_scripts',
+                                             'build_dbs.sh'))
+    vars = {'mipmap_db': d_config['mipmap_db'],
+            'capture_db': d_config['capture_db'],
+            'harmonize_db': d_config['harmonize_db'],
+            'container_name': d_config['container_name'],
+            'db_user': d_config['postgres_user']
+            }
+    template.stream(vars).dump('build_dbs.sh')
+
+
+
 # Get the DataFactory configuration
 with open('config.json') as json_data_file:
     config = json.load(json_data_file)
 
 update_compose(config)
 update_image_mapping(config)
+update_bash_scripts(config)

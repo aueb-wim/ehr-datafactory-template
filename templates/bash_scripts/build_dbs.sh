@@ -1,11 +1,11 @@
 #! /bin/bash
 
 
-db_mipmap=mipmap
-db_capture=i2b2_capture
-db_harmonized=i2b2_harmonized
-container_name=demo_postgres # <update with postgres name container>
-db_user=postgres
+db_mipmap={{ mipmap_db }}
+db_capture={{ capture_db }}
+db_harmonized={{ harmonize_db }}
+container_name={{ container_name }} # <update with postgres name container>
+db_user={{ db_user }}
 
 if [ -z $1 ]; then
     echo "No Argument given. Exiting...."
