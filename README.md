@@ -2,7 +2,7 @@
 
 [![AUEB](https://img.shields.io/badge/AUEB-RC-red.svg)](http://rc.aueb.gr/el/static/home) [![HBP-SP8](https://img.shields.io/badge/HBP-SP8-magenta.svg)](https://www.humanbrainproject.eu/en/follow-hbp/news/category/sp8-medical-informatics-platform/)
 
-This repo cocontains a wrapper script for running DataFactory EHR and MRI pipelines. 
+This repo contains a wrapper script for running DataFactory EHR and MRI pipelines. 
 
 
 ## Prerequisites
