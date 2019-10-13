@@ -6,12 +6,16 @@ db_capture=i2b2_capture
 db_harmonized=i2b2_harmonized
 container_name=demo_postgres # <update with postgres name container>
 db_user=postgres
+db_pwd=1234
+db_port=5432
 
 if [ -z $1 ]; then
     echo "No Argument given. Exiting...."
     exit 1
 
 elif [ $1 = "all" ]; then
+    docker run -p $db_port:5432 --name $container_name -e POSTGRES_PASSWORD=$db_pwd -d postgres:9.6
+    sleep 10
     echo "Creating all ehr datafactory database"
     # create mipmap database
     echo "Creating $db_mipmap database"

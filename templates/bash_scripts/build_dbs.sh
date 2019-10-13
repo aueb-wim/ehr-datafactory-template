@@ -6,12 +6,16 @@ db_capture={{ capture_db }}
 db_harmonized={{ harmonize_db }}
 container_name={{ container_name }} # <update with postgres name container>
 db_user={{ db_user }}
+db_pwd={{ db_pwd }}
+db_port={{ db_port }}
 
 if [ -z $1 ]; then
     echo "No Argument given. Exiting...."
     exit 1
 
 elif [ $1 = "all" ]; then
+    docker run -p $db_port:5432 --name $container_name -e POSTGRES_PASSWORD=$db_pwd -d postgres:9.6
+    sleep 10
     echo "Creating all ehr datafactory database"
     # create mipmap database
     echo "Creating $db_mipmap database"

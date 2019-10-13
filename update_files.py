@@ -64,7 +64,9 @@ def update_bash_scripts(config):
             'capture_db': d_config['capture_db'],
             'harmonize_db': d_config['harmonize_db'],
             'container_name': d_config['container_name'],
-            'db_user': d_config['postgres_user']
+            'db_user': d_config['postgres_user'],
+            'db_pwd': d_config['postgres_pwd'],
+            'db_port': d_config['postgres_port']
             }
     template.stream(vars).dump('build_dbs.sh')
 
