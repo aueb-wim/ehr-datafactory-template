@@ -1,4 +1,4 @@
 docker >= 4.0.2
 pandas >= 0.24.2
-jinja >= 2.8
+jinja2 >= 2.8
 pysha3 >= 1.0.2

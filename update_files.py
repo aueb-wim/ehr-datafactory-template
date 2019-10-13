@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2
 """This script updates the jinja template files placed 
 in template folder with the values of the config.json file.
 """
