@@ -8,7 +8,9 @@ import docker
 from helpers_docker import get_from, copy_to
 from helpers_imaging import split_subjectcode
 from logger import LOGGER
-from anonymization.anonymize_csv import anonymize_csv
+
+sys.path.insert(1, os.path.abspath('./anonymization'))
+from anonymize_csv import anonymize_csv
 
 
 def run_docker_compose(source_folder, cnfg_folder, dbprop_folder):
@@ -58,13 +60,13 @@ def export_csv(output_folder, csv_name, sql_script, container, config):
     LOGGER.info('Flat csv is saved in %s' % output_folder)
 
 
-def anonymize_db(output_folder, csv_name, container, config):
+def anonymize_db(output_folder, csv_name, strategy, container, config):
     """Anonymize the i2b2 database & exports in a flat csv"""
     db_user = config['db_docker']['postgres_user']
     i2b2_source = config['db_docker']['harmonize_db']
     i2b2_anonym = config['db_docker']['anonymized_db']
     anonym_sql = config['anonymization']['anonymization_sql']
-    pivoting_sql = config['anonymization']['strategy']['simple']
+    pivoting_sql = config['anonymization']['strategy'][strategy]
     anonymization_folder = os.path.abspath('./anonymization')
     # drop the existing anonymized db and create a new one
     cmd_drop_db = 'psql -U %s -d postgres -c "DROP DATABASE IF EXIST %s;"' % (db_user,
@@ -164,7 +166,8 @@ def main():
         output_folder = os.path.join(anonym_output_root, args.output)
         if args.mode == 'db':
             LOGGER.info('i2b2 db anonymization mode')
-            anonymize_db(output_folder, flat_anonym_csv, pg_container, config)
+            anonymize_db(output_folder, flat_anonym_csv,
+                         '6months', pg_container, config)
         elif args.mode == 'csv':
             LOGGER.info('csv anonymization mode')
             flat_csv_name = config['flatening']['export_csv_name']
@@ -187,7 +190,7 @@ def main():
         mri_raw_folder = os.path.join(mri_raw_root, args.source)
         mri_input_root = config['mri']['input_folders']['nifti']['root']
         mri_input_folder = os.path.join(mri_input_root, args.source)
-        # Reorganize mri files 
+        # Reorganize mri files
         LOGGER.info('Reorganizing nifti files in folder %s' % mri_input_folder)
         run_cmd = 'python2 mri_nifti_reorganize/organizer.py %s %s' % (mri_raw_folder, mri_input_folder)
         os.system(run_cmd)

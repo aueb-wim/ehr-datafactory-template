@@ -8,7 +8,6 @@ This repo contains a wrapper script for running DataFactory EHR and MRI pipeline
 ## Prerequisites
 
 * Python 2.x (see: https://www.python.org/)
-* Python 3.x
 * docker
 * docker-compose
 * Matlab (see: https://ch.mathworks.com/products/matlab.html)
@@ -23,39 +22,43 @@ There is an ansible script here for easy installation.
 
 Otherwise, clone this repo on the hospital server and then:
 
-Update config.json file. 
+Update config.json file.
 
 Run
 
 ```shell
-python3 update_files.py
+ ./update_files.py
 ```
+
 Create DataFactory databases
 
 **Caution!** The following creation script drop any prexisting DataFactory database. Skip this step if there is no such need *i.e. when importing a second batch of hospital data.*
 
 for droping and creating all databases at once
+
 ```shell
 $ sh build_dbs.sh all
 ```
 
 for creating an empty database used by MIPMapReduce
+
 ```shell
 $ sh build_dbs.sh mipmap
 ```
 
 for creating am empty i2b2 capture database
+
 ```shell
 $ sh build_dbs.sh capture
 ```
 
 for creating an empty i2b2 harmonize database
+
 ```shell
 $ sh build_dbs.sh harmonize
 ```
 
 Copy and replace the mapping task configuration files from the mapping task design folder into the *preprocess_step*, *capture_step*, *harmonize_step* folders accordingly.
-
 
 ## Running DataFactory pipeline
 
@@ -63,10 +66,10 @@ Copy and replace the mapping task configuration files from the mapping task desi
 
 #### Running the Ashburner's NeuroMetric scripts
 
-In DataFactory folder run 
+In DataFactory folder run
 
 ```shell
-python3 df.py mri -s <input folder> 
+./df.py mri -s <input folder>
 ```
 
 The input folder must contains nifti files according to the Prerequisites. 
@@ -78,7 +81,7 @@ In the folder where the output file `volumes.csv` is stored from the previous st
 After this, in DataFactory folder run
 
 ```shell
-python3 df.py imaging -s <input folder>
+./df.py imaging -s <input folder>
 ```
 
 As `input folder` we give just the folder name and not the whole path.
@@ -87,20 +90,20 @@ As `input folder` we give just the folder name and not the whole path.
 
 #### Preprocess step
 
-In DataFactory folder run 
+In DataFactory folder run
 
 ```shell
-python3 df.py preprocess -s <input folder> -c <mapping config folder>
+./df.py preprocess -s <input folder> -c <mapping config folder>
 ```
 
-As `input folder` and `mapping config folder` we give just the folder name and not the whole path. 
+As `input folder` and `mapping config folder` we give just the folder name and not the whole path.
 
 #### Capture step
 
 In DataFactory folder run
 
 ```shell
-python3 df.py capture -s <input folder> -c <mapping config folder>
+./df.py capture -s <input folder> -c <mapping config folder>
 ```
 
 As `input folder` and `mapping config folder` we give just the folder name and not the whole path. 
@@ -110,7 +113,7 @@ As `input folder` and `mapping config folder` we give just the folder name and n
 In DataFactory folder run
 
 ```shell
-python3 df.py harmonize -0 <output folder>
+./df.py harmonize -0 <output folder>
 ```
 
 As `mapping config folder` we give just the folder name and not the whole path.
@@ -120,7 +123,7 @@ As `mapping config folder` we give just the folder name and not the whole path.
 In DataFactory folder run
 
 ```shell
-python3 df.py export -o <mapping config folder>
+./df.py export -o <mapping config folder>
 ```
 
 As `output folder` we give just the folder name and not the whole path.
@@ -131,10 +134,10 @@ As `output folder` we give just the folder name and not the whole path.
 In DataFactory folder run
 
 ```shell
-python3 df.py anonymize -o <anon output folder> -m <mode>
+./df.py anonymize -o <anon output folder> -m <mode>
 ```
 
-`-m` can take two flags `csv` or `db`. Choose `csv` for anonymizing a previously exported flat csv. Choose `db` for anonymizing the harmonized db and then exporting a flat csv. 
+`-m` can take two flags `csv` or `db`. Choose `csv` for anonymizing a previously exported flat csv. Choose `db` for anonymizing the harmonized db and then exporting a flat csv.
 
 As `anon output folder` we give just the folder name and not the whole path.
 `harmonized_clinical_anon_data.csv` is created in this output folder.

@@ -37,7 +37,8 @@
         "anonymized_csv_name": "harmonized_clinical_anon_data.csv",
         "anonymization_sql": "anonymize_db_ides.sql",
         "strategy":{
-            "simple": "pivot_i2b2_MinDate_NEW19_a_fed.sql"
+            "simple": "pivot_i2b2_MinDate_NEW19_a_fed.sql",
+            "6months": "pivot_i2b2_6_months_MRI_Diag_fed.sql"
         },
         "output_folder": "/home/iosif/Documents/Github_repos/ehr-datafactory-template/anonym_output"
     },
