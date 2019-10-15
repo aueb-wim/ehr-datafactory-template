@@ -17,7 +17,7 @@ def run_docker_compose(source_folder, cnfg_folder, dbprop_folder):
     os.environ['mipmap_pgproperties'] = dbprop_folder
     LOGGER.info('Mounting %s as source folder' % source_folder)
     os.environ['mipmap_source'] = source_folder
-    LOGGER.info('Mounting %s as mapping folder' % config_folder)
+    LOGGER.info('Mounting %s as mapping folder' % cnfg_folder)
     os.environ['mipmap_map'] = cnfg_folder
     LOGGER.info('Running... docker-compose up mipmap_etl')
     os.system('docker-compose up mipmap_etl')
