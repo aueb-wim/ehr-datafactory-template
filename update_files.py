@@ -42,8 +42,9 @@ def update_image_mapping(configdict):
                                               'encountermapping.properties.j2'))
     LOGGER.info('Hospital name is %s' % configdict['hospital_name'])
     LOGGER.info('MRI visit file name is %s' % imgconfig['input_files'][1])
+    hospital_name = '\"' + configdict['hospital_name'] + '\"'
     vars = {'visit_file': imgconfig['input_files'][1],
-            'hospital_name': configdict['hospital_name']}
+            'hospital_name': hospital_name}
     patientprop_fp = os.path.join(img_mapping_folder,
                                  'patientmapping.properties')
     encounterprop_fp = os.path.join(img_mapping_folder,

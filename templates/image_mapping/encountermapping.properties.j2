@@ -3,5 +3,5 @@ sourceInputPath=/opt/source/{{ visit_file }}
 commandTarget=db
 targetInputPath=/opt/postgresdb.properties/i2b2-db.properties,encounter_mapping
 targetColumns=[encounter_ide, encounter_ide_source, project_id, patient_ide, patient_ide_source, encounter_num]
-functionPerColumn=[VISIT_ID,{{ hospital_name }},{{ hospital_name }},PATIENT_ID,{{ hospital_name }}]
+functionPerColumn=[VISIT_ID,{{ hospital_name|safe }},{{ hospital_name|safe }},PATIENT_ID,{{ hospital_name|safe }}]
 outputFile=/opt/source/EncounterMapping.csv
