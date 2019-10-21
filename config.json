@@ -1,33 +1,32 @@
 {
     "hospital_name": "MockHospital",
     "mipmap":{
-        "dbproperties": "/home/iosif/Documents/Github_repos/ehr-datafactory-template/postgresdb.properties",
+        "dbproperties": "/opt/DataFactory/dbproperties",
         "preprocess": {
-            "root":"/home/iosif/mappings/preprocess"
+            "root":"/opt/DataFactory/preprocess_step"
         },            
         "capture": {
-            "root": "/home/iosif/mappings/capture"
+            "root": "/opt/DataFactory/capture_step"
         },
         "harmonize": {
-            "root": "/home/iosif/mappings/harmonize"
+            "root": "/opt/DataFactory/harmonize_step"
         },
         "imaging": {
-            "root": "/home/iosif/Documents/Github_repos/ehr-datafactory-template/mipmap_mappings/imaging_step",
+            "root": "/opt/DataFactory/imaging_step",
             "mapping": {
                 "input_files": ["volumes.csv", "mri_visits.csv"],
                 "processed_files" : ["volumes_df.csv"]
             }
         },
         "input_folders":{
-            "ehr":"/home/iosif/data/ehr",
-            "imaging":"/home/iosif/data/imaging"
-        },
-        "output_folder":"/home/iosif/data/output"
+            "ehr":"/data/DataFactory/EHR/input",
+            "imaging":"/data/DataFactory/imaging/"
+        }
     },
-    "sql_scripts_folder":"/home/iosif/Documents/Github_repos/ehr-datafactory-template/export_step",
+    "sql_scripts_folder":"/opt/DataFactory/export_step",
     "flatening":{
         "export_csv_name": "harmonized_clinical_data.csv",
-        "output_folder": "/home/iosif/Documents/Github_repos/ehr-datafactory-template/output",
+        "output_folder": "/data/DataFactory/output/",
         "strategy":{
             "simple":"pivot_i2b2_MinDate_NEW19_a.sql",
             "6months": "pivot_i2b2_6_months_MRI_Diag.sql"
@@ -40,7 +39,7 @@
             "simple": "pivot_i2b2_MinDate_NEW19_a_fed.sql",
             "6months": "pivot_i2b2_6_months_MRI_Diag_fed.sql"
         },
-        "output_folder": "/home/iosif/Documents/Github_repos/ehr-datafactory-template/anonym_output"
+        "output_folder": "/data/DataFactory/anonymized_output/"
     },
     "db_docker":{
         "container_name": "demo_postgres",
@@ -55,16 +54,16 @@
     "mri":{
         "input_folders": {
             "nifti": {
-                "raw" : "/home/iosif/data/mri/input/raw/nifti",
-                "root": "/home/iosif/data/mri/input/nifti"
+                "raw" : "/data/DataFactory/anonymized_output/",
+                "root": "/data/DataFactory/MRI/input/nifti/"
             },
             "dicom": {
-                "raw": "/home/iosif/data/mri/input/raw/dicom",
-                "root": "/home/iosif/data/mri/input/dicom"
+                "raw": "/data/DataFactory/MRI/input/raw/dicom",
+                "root": "/data/DataFactory/MRI/input/dicom"
             }
         },
         "output_folders": {
-            "spm12" : "/home/iosif/data/mri/output/spm12"
+            "spm12" : "/data/DataFactory/MRI/output/spm12"
         }
     }
 }
