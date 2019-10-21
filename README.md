@@ -108,7 +108,7 @@ For the proprocess step we create a new folder in `/preprocess_step` and named i
 
 For the capture step we create a new folder in `/capture_step` and named it accordingly (ie `1` if is the first version of this configuration) and then place the configuration files in.
 
-For the capture step we create a new folder in `/harmonize_step` and named it accordingly (ie `1` if is the first version of this configuration) and then place the configuration files in.
+For the harmonize step we create a new folder in `/harmonize_step` and named it accordingly (ie `1` if is the first version of this configuration) and then place the configuration files in.
 
 **Please change the rights of the folders in order to be readable and writable for the `datafactory` user group.**
 
@@ -163,24 +163,24 @@ In DataFactory folder run
 ./df.py capture -s <input folder> -c <mapping config folder>
 ```
 
-As `input folder` and `mapping config folder` we give just the corresponding subfolder name and not the whole path. 
+As `input folder` and `mapping config folder` we give just the corresponding subfolder name and not the whole path.
 
 ### Harmonization step
 
 In DataFactory folder run
 
 ```shell
-./df.py harmonize -0 <output folder>
+./df.py harmonize -c <mapping config folder>
 ```
 
-As `mapping config folder` we give just the folder name and not the whole path.
+As `mapping config folder` we give jjust the corresponding subfolder name and not the whole path.
 
 ### Export flat csv
 
 In DataFactory folder run
 
 ```shell
-./df.py export -o <mapping config folder>
+./df.py export -o <output folder>
 ```
 
 As `output folder` we give just the folder name and not the whole path.
