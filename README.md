@@ -57,6 +57,9 @@ pip install -r requirements.txt --user
 ```
 ### update files 
 
+Update the parameteres in config.json file (Hospital name, docker postgres container details etc). 
+Then run: 
+
 ```shell
  ./update_files.py
 ```
