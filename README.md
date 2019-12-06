@@ -129,7 +129,7 @@ In DataFactory folder run
 ./df.py mri -s <input folder>
 ```
 
-The input folder must contains nifti files according to the Prerequisites. 
+The input folder must contain nifti files according to the Prerequisites. 
 
 #### Importing the volumetric brain features into the i2b2 capture database
 
