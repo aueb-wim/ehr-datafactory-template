@@ -1,4 +1,5 @@
 ﻿create or replace function pivotfunction_fed() RETURNS void AS $BODY$
+-- ******** OFFICIAL CHUV-CLM 6-month-window strategy one visit per patient export plpg function 4 i2b2-harmonized db ********
 DECLARE concept text;
 DECLARE valtype text;
 DECLARE type_name text;
@@ -161,8 +162,8 @@ currentid := ',' || subjectcodeide || ',';
 			execute format('insert into ' || table_name  || '( subjectcode, subjectageyears, gender, dataset, agegroup) VALUES (''' || subjectcodeide || ''',' || subjectageyears || ',''' || gender || ''',''' || dataset || ''',' || agegroup || ')');
 		ELSE
 		execute format('insert into ' || table_name  || '( subjectcode, subjectageyears, subjectage, gender, dataset, agegroup) VALUES (''' || subjectcodeide || ''',' || subjectageyears || ',' || subjectage || ',''' || gender || ''',''' || dataset || ''',' || agegroup || ')');
-		usedid := usedid || ',' || subjectcodeide ||',';
 		END IF;
+		usedid := usedid || ',' || subjectcodeide ||',';
 		countInserts=countInserts+1;
 	end if;
 END LOOP;
@@ -214,13 +215,14 @@ raise notice 'CountUpdates: %', countUpdates;
 --raise notice 'new_table has % tuples', countUpdates;
 
 BEGIN
-	COPY new_table FROM '/tmp/harmonized_clinical_data_anon.csv' DELIMITER ',' CSV HEADER ; 
+	COPY new_table FROM '/tmp/harmonized_clinical_data.csv' DELIMITER ',' CSV HEADER ; 
 EXCEPTION
 WHEN OTHERS 
-        THEN raise notice 'No such file /tmp/harmonized_clinical_data_anon.csv';
+        THEN raise notice 'No such file /tmp/harmonized_clinical_data.csv';
 END;
-COPY (SELECT * FROM new_table) TO '/tmp/harmonized_clinical_data_anon.csv' WITH CSV DELIMITER ',' HEADER;
+COPY (SELECT * FROM new_table) TO '/tmp/harmonized_clinical_data.csv' WITH CSV DELIMITER ',' HEADER;
 EXECUTE FORMAT('DROP TABLE IF EXISTS temp_table');
 EXECUTE FORMAT('DROP TABLE IF EXISTS ' || table_name);
+EXECUTE FORMAT('DROP VIEW IF EXISTS valid_diagnosis_encounter_nums');
 END; $BODY$ language plpgsql;
 select pivotfunction_fed();

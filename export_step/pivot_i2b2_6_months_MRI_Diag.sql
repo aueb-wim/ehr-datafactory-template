@@ -1,4 +1,5 @@
 ﻿create or replace function pivotfunction() RETURNS void AS $BODY$
+-- ******** OFFICIAL CHUV-CLM 6-month-window strategy one visit per patient export plpg function 4 i2b2-harmonized db ********
 DECLARE concept text;
 DECLARE valtype text;
 DECLARE type_name text;
@@ -46,15 +47,14 @@ loop
 	countCDEcolumns := countCDEcolumns+1;
 	raise notice 'CDE: %', concept;
 end loop;
-
+raise notice 'Counted % CDE-columns', countCDEcolumns;
 -- create table for cde variables - the list of variables in this table is fixed (cde variables)
 table_name := 'new_table';
 query := 'CREATE TABLE ' || table_name || '( "subjectcode" text' || cdesQuery;
-raise notice 'Counted % CDE-columns', countCDEcolumns;
 
 -- collect all hospital specific concept_cds in order to obtain the available columns
-raise notice '1. Here is the CREATE TABLE query: %', query;
-raise notice '\n';
+raise notice '1... Here is the CREATE TABLE query: %', query;
+raise notice '';
 for concept, valtype in 
 	select distinct on (concept_cd) concept_cd, valtype_cd 
 	from observation_fact
@@ -86,7 +86,7 @@ query := query || ', PRIMARY KEY (subjectcode))';
 execute format('DROP TABLE IF EXISTS ' || table_name);
 --raise notice '4. And here it is now: %', query;
 execute format(query);
--- Table has been created. Time to populate it. 
+-- Table has been created. Time to insert tuples...
 EXECUTE FORMAT('
 DROP VIEW IF EXISTS valid_diagnosis_encounter_nums;
 CREATE VIEW valid_diagnosis_encounter_nums AS
@@ -128,7 +128,7 @@ EXECUTE 'SELECT DISTINCT(provider_id) FROM observation_fact' INTO dataset_const;
 raise notice 'dataset variable has value: %', dataset_const;
 
 FOR subjectcodeide, subjectageyears, subjectage, gender, dataset in
-     SELECT pm.patient_ide, FLOOR(tt.age_diag), ROUND((tt.age_diag-FLOOR(tt.age_diag))*12), pd.sex_cd, 'CLM'
+     SELECT pm.patient_ide, FLOOR(tt.age_diag), ROUND((tt.age_diag-FLOOR(tt.age_diag))*12), pd.sex_cd, dataset_const
 	FROM temp_table tt, patient_mapping pm, patient_dimension pd
         WHERE tt.patient_num=pm.patient_num AND pm.patient_num=pd.patient_num
 	--ORDER BY pd.patient_num
@@ -161,8 +161,8 @@ currentid := ',' || subjectcodeide || ',';
 			execute format('insert into ' || table_name  || '( subjectcode, subjectageyears, gender, dataset, agegroup) VALUES (''' || subjectcodeide || ''',' || subjectageyears || ',''' || gender || ''',''' || dataset || ''',' || agegroup || ')');
 		ELSE
 		execute format('insert into ' || table_name  || '( subjectcode, subjectageyears, subjectage, gender, dataset, agegroup) VALUES (''' || subjectcodeide || ''',' || subjectageyears || ',' || subjectage || ',''' || gender || ''',''' || dataset || ''',' || agegroup || ')');
-		usedid := usedid || ',' || subjectcodeide ||',';
 		END IF;
+		usedid := usedid || ',' || subjectcodeide ||',';
 		countInserts=countInserts+1;
 	end if;
 END LOOP;
@@ -222,5 +222,6 @@ END;
 COPY (SELECT * FROM new_table) TO '/tmp/harmonized_clinical_data.csv' WITH CSV DELIMITER ',' HEADER;
 EXECUTE FORMAT('DROP TABLE IF EXISTS temp_table');
 EXECUTE FORMAT('DROP TABLE IF EXISTS ' || table_name);
+EXECUTE FORMAT('DROP VIEW IF EXISTS valid_diagnosis_encounter_nums');
 END; $BODY$ language plpgsql;
 select pivotfunction();
