@@ -2,25 +2,22 @@
 
 [![AUEB](https://img.shields.io/badge/AUEB-RC-red.svg)](http://rc.aueb.gr/el/static/home) [![HBP-SP8](https://img.shields.io/badge/HBP-SP8-magenta.svg)](https://www.humanbrainproject.eu/en/follow-hbp/news/category/sp8-medical-informatics-platform/)
 
-This repo contains a wrapper script for running DataFactory EHR and MRI pipelines. 
-
+This repo contains a wrapper script for running DataFactory EHR and MRI pipelines.
 
 ## Prerequisites
 
 * Python 2.x (see: https://www.python.org/)
 * docker
 * docker-compose
-* Matlab (see: https://ch.mathworks.com/products/matlab.html) (**MRI pipeline**)
+* Matlab (see: [here](https://ch.mathworks.com/products/matlab.html)) (**MRI pipeline**)
 * pandas 1.24.2 for python version 2 (**MRI pipeline**)
-* SPM12 deployed in /opt folder (see: https://www.fil.ion.ucl.ac.uk/spm/software/spm12/)(**MRI pipeline**)
-* Matlab engine for Python must be installed (see: https://www.mathworks.com/help/matlab/matlab_external/install-the-matlab-engine-for-python.html) (**MRI pipeline**)
-* The input folder must contain nifti files organized according to the following directory tree: subject/visit/protocol/repetition/ (see: https://github.com/HBPMedical/hierarchizer)(**MRI pipeline**)
-* If the protocol as per previous bullet-point is not T1, you'll have to update the protocol definition file from the mri-preprocessing-pipeline subproject (see: https://github.com/HBPMedical/mri-preprocessing-pipeline) (**MRI pipeline**)
+* SPM12 deployed in /opt folder (see: [here](https://www.fil.ion.ucl.ac.uk/spm/software/spm12/))(**MRI pipeline**)
+* Matlab engine for Python must be installed (see: [here](https://www.mathworks.com/help/matlab/matlab_external/install-the-matlab-engine-for-python.html)) (**MRI pipeline**)
 
 ## Deployment and Configuration
 
-There is an ansible script [here](https://github.com/aueb-wim/ansible-datafactory) for installing and creating the datafactory data folders.
-
+It is suggested to use the ansible script [here](https://github.com/aueb-wim/ansible-datafactory) for installing and creating the datafactory data folders.
+Alternative, you could manually clone this repo, update the `config.json` and create the following folder structure.
 
 ### Data Factory Folders
 
@@ -40,7 +37,6 @@ There is an ansible script [here](https://github.com/aueb-wim/ansible-datafactor
 | /opt/DataFactory/mipmap_mappings/imaging_step    | DataFactory imaging mapping config folder     |
 | /opt/DataFactory/export_step                     | DataFactory export sql scripts folder         |
 
-
 ### Data Factory enviroment variables
 
 | Variable name            | Description                                    |
@@ -55,10 +51,11 @@ In /opt/DataFactory folder run:
 ```shell
 pip install -r requirements.txt --user
 ```
-### update files 
 
-Update the parameteres in config.json file (Hospital name, docker postgres container details etc). 
-Then run: 
+### update files
+
+Update the parameteres in config.json file (Hospital name, docker postgres container details etc).
+Then run:
 
 ```shell
  ./update_files.py
@@ -118,7 +115,9 @@ For the harmonize step we create a new folder in `/harmonize_step` and named it 
 ## DataFactory data folders
 
 The ehr files must be placed in a subfolder in the folder `/data/DataFactory/EHR/input` and named it accordingly  (ie `1` if is the first batch of data)
-Please check the documentation for more information about the ehr files in the repository where the hospital's mapping tasks configuration files are stored. 
+Please check the documentation for more information about the ehr files in the repository where the hospital's mapping tasks configuration files are stored.
+
+The niftii files must be placed in a subfolder in the folder `/data/DataFactory/MRI/nifti/raw` and named it accordingly (For example, in case we have a first batch of MRIs, we place them into the folder `/data/DataFactory/MRI/dicom/raw/1`.). The files must contain full-brain T1-weighted MRI data in nifti format and named `<patient_id>_<visit_id>.nii`.
 
 ## Running DataFactory pipeline
 
@@ -132,7 +131,9 @@ In DataFactory folder run
 ./df.py mri -s <input folder>
 ```
 
-The input folder must contain nifti files according to the Prerequisites. 
+As `input folder` we give just the subfolder name in `/data/DataFactory/MRI/dicom/raw/` and not the whole path. For example just `1`, `v1` or `2` etc.
+The output of this step is a `volumes.csv` files with the volumetric data of all the MRIs. This file is stored in a subfolder with the same name given as `input_folder` the folder `/data/DataFactory/imaging`. For example `/data/DataFactory/imaging/1`.  
+
 
 #### Importing the volumetric brain features into the i2b2 capture database
 
@@ -144,7 +145,7 @@ After this, in DataFactory folder run
 ./df.py imaging -s <input folder>
 ```
 
-As `input folder` we give just the subfolder name in `/data/DataFactory/EHR/input` and not the whole path.
+As `input folder` we give just the subfolder name in `/data/DataFactory/imaging` and not the whole path. For example just `1`, `v1` or `2` etc.
 
 ### EHR pipeline
 
@@ -156,7 +157,7 @@ In DataFactory folder run
 ./df.py preprocess -s <input folder> -c <mapping config folder>
 ```
 
-As `input folder` and `mapping config folder` we give just the corresponding subfolder name and not the whole path.
+As `input folder` and `mapping config folder` we give just the corresponding subfolder name and not the whole path. `Input folder` is where the ehr data files are stored and `mapping config folder` is where the mapping configuration files are stored. Auxiliary files are created in the same folder where the ehr csv files are located (for example in `/data/DataFactory/EHR/input/1` if we have used as input folder the name `1`)
 
 #### Capture step
 
@@ -166,7 +167,7 @@ In DataFactory folder run
 ./df.py capture -s <input folder> -c <mapping config folder>
 ```
 
-As `input folder` and `mapping config folder` we give just the corresponding subfolder name and not the whole path.
+As `input folder` and `mapping config folder` we give just the corresponding subfolder name and not the whole path. `Input folder` is where the data files are stored and `mapping config folder` is where the mapping configuration files are stored.
 
 ### Harmonization step
 
@@ -176,28 +177,29 @@ In DataFactory folder run
 ./df.py harmonize -c <mapping config folder>
 ```
 
-As `mapping config folder` we give jjust the corresponding subfolder name and not the whole path.
+As `mapping config folder` we give just the corresponding subfolder name and not the whole path. (i.e. `1`, `2` etc).`mapping config folder` is where the mapping configuration files are stored.
 
 ### Export flat csv
 
 In DataFactory folder run
 
 ```shell
-./df.py export -o <output folder>
+./df.py export -o <output folder> --strategy <flattening method> --dataset <string value>
 ```
 
-As `output folder` we give just the folder name and not the whole path.
-`harmonized_clinical_data.csv` is created in this output folder 
+As `output folder` we give just the folder name and not the whole path and `harmonized_clinical_data.csv` is created in this output folder. 
+`--strategy` we declare the csv flattening method
+`--dataset` we declare the value that is going to be filled in the final csv under the column 'Dataset'
 
 ### Anonymization
 
 In DataFactory folder run
 
 ```shell
-./df.py anonymize -o <anon output folder> -m <mode>
+./df.py anonymize -m <mode> (-s <source csv folder>) -o <anon output folder> (--dataset <string value>) (--strategy <flattening method>)
 ```
 
-`-m` can take two flags `csv` or `db`. Choose `csv` for anonymizing a previously exported flat csv. Choose `db` for anonymizing the harmonized db and then exporting a flat csv.
+`-m` can take two flags `csv` or `db`. Choose `csv` for anonymizing a previously exported flat csv in the folder given in `-s` keyword. Choose `db` for anonymizing the harmonized db and then exporting a flat csv, also include `--strategy` and choose  csv flatening method and give the dataset name value after `--dataset`.
 
-As `anon output folder` we give just the folder name and not the whole path.
-`harmonized_clinical_anon_data.csv` is created in this output folder.
+As `anon output folder` in `-o` keyword,  we give just the folder name and not the whole path (for example `1`).
+`harmonized_clinical_anon_data.csv` is created in this output folder (for example in `/data/DataFactory/output/1`)
