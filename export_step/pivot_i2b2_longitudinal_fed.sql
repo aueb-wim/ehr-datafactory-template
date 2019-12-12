@@ -165,12 +165,12 @@ raise notice 'CountUpdates: %', countUpdates;
 --raise notice 'new_table has % tuples', countUpdates;
 
 BEGIN
-	COPY new_table FROM '/tmp/harmonized_clinical_data.csv' DELIMITER ',' CSV HEADER ; 
+	COPY new_table FROM '/tmp/harmonized_clinical_data_long_anon.csv' DELIMITER ',' CSV HEADER ; 
 EXCEPTION
 WHEN OTHERS 
-        THEN raise notice 'No such file /tmp/harmonized_clinical_data.csv';
+        THEN raise notice 'No such file /tmp/harmonized_clinical_data_long_anon.csv';
 END;
-COPY (SELECT * FROM new_table) TO '/tmp/harmonized_clinical_data.csv' WITH CSV DELIMITER ',' HEADER;
+COPY (SELECT * FROM new_table) TO '/tmp/harmonized_clinical_data_long_anon.csv' WITH CSV DELIMITER ',' HEADER;
 EXECUTE FORMAT('DROP TABLE IF EXISTS temp_table');
 EXECUTE FORMAT('DROP TABLE IF EXISTS ' || table_name);
 END; $BODY$ language plpgsql;

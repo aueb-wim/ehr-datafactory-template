@@ -167,12 +167,12 @@ EXECUTE FORMAT('DROP VIEW IF EXISTS min_date_with_age');--drop these views to ha
 EXECUTE FORMAT('DROP VIEW IF EXISTS min_date');		--
 
 BEGIN
-	COPY new_table FROM '/tmp/harmonized_clinical_data.csv' DELIMITER ',' CSV HEADER ; 
+	COPY new_table FROM '/tmp/harmonized_clinical_data_min.csv' DELIMITER ',' CSV HEADER ; 
 EXCEPTION
 WHEN OTHERS 
-        THEN raise notice 'No such file /tmp/harmonized_clinical_data.csv';
+        THEN raise notice 'No such file /tmp/harmonized_clinical_data_min.csv';
 END;
-COPY (SELECT * FROM new_table) TO '/tmp/harmonized_clinical_data.csv' WITH CSV DELIMITER ',' HEADER;
+COPY (SELECT * FROM new_table) TO '/tmp/harmonized_clinical_data_min.csv' WITH CSV DELIMITER ',' HEADER;
 EXECUTE FORMAT('DROP TABLE IF EXISTS ' || table_name);
 END; $BODY$ language plpgsql;
 select pivotfunction_min();
