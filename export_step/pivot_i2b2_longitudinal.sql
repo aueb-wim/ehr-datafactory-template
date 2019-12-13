@@ -26,6 +26,12 @@ DECLARE encounter_ide text;
 DECLARE countUpdates integer;
 DECLARE countInserts integer;
 DECLARE countLoops integer;
+declare
+    v_state   TEXT;
+    v_msg     TEXT;
+    v_detail  TEXT;
+    v_hint    TEXT;
+    v_context TEXT;
 BEGIN
 query := '';
 --usedid := '';
@@ -107,18 +113,26 @@ LOOP
 		agegroup = '''-50y''';
    END CASE;
 		
-	IF subjectageyears IS NULL AND subjectage IS NULL THEN
-		execute format('insert into ' || table_name  || '( subjectcode, subjectvisitid, subjectvisitdate, gender, dataset, agegroup) VALUES (''' || subjectcodeide ||  ''',''' || subjectvisitide || ''',''' || subjectvisitdate || ''',''' || gender || ''',''' || dataset_const || ''',' || agegroup || ')');
-	ELSIF subjectageyears IS NULL AND subjectage IS NOT NULL THEN
-		execute format('insert into ' || table_name  || '( subjectcode, subjectvisitid, subjectvisitdate, subjectage, gender, dataset, agegroup) VALUES (''' || subjectcodeide || ''',''' || subjectvisitide || ''',''' || subjectvisitdate || ''',' || subjectage || ',''' || gender || ''',''' || dataset_const || ''',' || agegroup || ')');
-	ELSIF subjectageyears IS NOT NULL AND subjectage IS NULL THEN
-		execute format('insert into ' || table_name  || '( subjectcode, subjectvisitid, subjectvisitdate, subjectageyears, gender, dataset, agegroup) VALUES (''' || subjectcodeide || ''',''' || subjectvisitide || ''',''' || subjectvisitdate || ''',' || subjectageyears || ',''' || gender || ''',''' || dataset_const || ''',' || agegroup || ')');
-	ELSE
+	BEGIN
 		execute format('insert into ' || table_name  || '( subjectcode, subjectvisitid, subjectvisitdate, subjectageyears, subjectage, gender, dataset, agegroup) VALUES (''' || subjectcodeide || ''',''' || subjectvisitide || ''',''' || subjectvisitdate || ''',' || subjectageyears || ',' || subjectage || ',''' || gender || ''',''' || dataset_const || ''',' || agegroup || ')');
-	END IF;
-	
-	countInserts:=countInserts+1;
-	
+
+		countInserts:=countInserts+1;
+	EXCEPTION WHEN others then
+		RAISE NOTICE '~~~~~ NULL value in age or gender for subject: % ~~~~~ TERMINATING... ~~~~~', subjectcodeide;
+		get stacked diagnostics
+	        v_state   = returned_sqlstate,
+	       	v_msg     = message_text,
+	       	v_detail  = pg_exception_detail,
+	       	v_hint    = pg_exception_hint,
+	       	v_context = pg_exception_context;
+		raise notice E'Got exception:
+	        state  : %
+        	message: %
+        	detail : %
+        	hint   : %
+        	context: %', v_state, v_msg, v_detail, v_hint, v_context;
+		RETURN;
+	END;
 END LOOP;
 -- Demographics info has been stored
 raise notice 'countInserts: %', countInserts;

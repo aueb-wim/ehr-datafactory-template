@@ -1,5 +1,5 @@
 ﻿create or replace function pivotfunction_min() RETURNS void AS $BODY$
--- ******** OFFICIAL min date one visit per patient export plpg function 4 i2b2-harmonized db ********
+-- ******** OFFICIAL min date one visit per patient export plpg function 4 i2b2-harmonized db **********
 DECLARE concept text;
 DECLARE valtype text;
 DECLARE type_name text;
@@ -23,6 +23,12 @@ DECLARE agegroup text;-- in this pivotfunction version agegroup s value is still
 DECLARE encounter text;
 DECLARE countUpdates integer;
 DECLARE countInserts integer;
+declare
+    v_state   TEXT;
+    v_msg     TEXT;
+    v_detail  TEXT;
+    v_hint    TEXT;
+    v_context TEXT;
 BEGIN
 query := '';
 usedid := '';
@@ -77,9 +83,9 @@ execute format(query);
 /*
 EXECUTE FORMAT('DROP VIEW IF EXISTS min_age');
 EXECUTE FORMAT('CREATE VIEW min_age AS SELECT patient_num, min(patient_age) AS minage FROM visit_dimension GROUP BY patient_num');*/
+EXECUTE FORMAT('DROP VIEW IF EXISTS min_date_with_age');
 EXECUTE FORMAT('DROP VIEW IF EXISTS min_date');
 EXECUTE FORMAT('CREATE VIEW min_date AS SELECT patient_num, min(start_date) AS mindate FROM visit_dimension GROUP BY patient_num');
-EXECUTE FORMAT('DROP VIEW IF EXISTS min_date_with_age');
 EXECUTE FORMAT('CREATE VIEW min_date_with_age AS SELECT md.patient_num, pm.patient_ide, vd.encounter_num, md.mindate, vd.patient_age 
 		FROM min_date md, visit_dimension vd, patient_mapping pm 
 		WHERE md.patient_num=vd.patient_num AND md.mindate=vd.start_date AND md.patient_num=pm.patient_num');
@@ -113,18 +119,27 @@ END CASE;
 
 	IF ( usedid ~ currentid) then
 	else
-		
-		IF subjectageyears IS NULL AND subjectage IS NULL THEN
-			execute format('insert into ' || table_name  || '( subjectcode, gender, dataset, agegroup) VALUES (''' || subjectcodeide ||  ''',''' || gender || ''',''' || dataset_const || ''',' || agegroup || ')');
-		ELSIF subjectageyears IS NULL AND subjectage IS NOT NULL THEN
-			execute format('insert into ' || table_name  || '( subjectcode, subjectage, gender, dataset, agegroup) VALUES (''' || subjectcodeide || ''','  || subjectage || ',''' || gender || ''',''' || dataset_const || ''',' || agegroup || ')');
-		ELSIF subjectageyears IS NOT NULL AND subjectage IS NULL THEN
-			execute format('insert into ' || table_name  || '( subjectcode, subjectageyears, gender, dataset, agegroup) VALUES (''' || subjectcodeide || ''',' || subjectageyears || ',''' || gender || ''',''' || dataset_const || ''',' || agegroup || ')');
-		ELSE
+	    BEGIN
 		execute format('insert into ' || table_name  || '( subjectcode, subjectageyears, subjectage, gender, dataset, agegroup) VALUES (''' || subjectcodeide || ''',' || subjectageyears || ',' || subjectage || ',''' || gender || ''',''' || dataset_const || ''',' || agegroup || ')');
-		END IF;
+		
 		usedid := usedid || ',' || subjectcodeide ||',';
 		countInserts=countInserts+1;
+	    EXCEPTION WHEN others then
+		RAISE NOTICE '~~~~~ NULL value in age or gender for subject: % ~~~~~ TERMINATING... ~~~~~', subjectcodeide;
+		get stacked diagnostics
+	        v_state   = returned_sqlstate,
+        	v_msg     = message_text,
+        	v_detail  = pg_exception_detail,
+        	v_hint    = pg_exception_hint,
+        	v_context = pg_exception_context;
+		raise notice E'Got exception:
+	        state  : %
+        	message: %
+        	detail : %
+        	hint   : %
+        	context: %', v_state, v_msg, v_detail, v_hint, v_context;
+		RETURN;
+	    END;
 	end if;
 END LOOP;
 -- Demographics info has been stored
