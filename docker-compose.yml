@@ -33,7 +33,7 @@ services:
     container_name: "i2b2-setup"
     command: "upgrade head"
     external_links:
-      - "demo_postgres:df_postgres"
+      - "df_postgres:df_postgres"
     environment:
       - DB_URL=postgresql://postgres:1234@df_postgres:5432/i2b2_capture
     network_mode: bridge
@@ -44,7 +44,7 @@ services:
     container_name: "i2b2-setup-harmonized"
     command: "upgrade head"
     external_links:
-      - "demo_postgres:df_postgres"
+      - "df_postgres:df_postgres"
     environment:
       - DB_URL=postgresql://postgres:1234@df_postgres:5432/i2b2_harmonized
     network_mode: bridge
@@ -74,6 +74,6 @@ services:
       - i2b2_db_harmonized_user=postgres
       - i2b2_db_harmonized_password=1234
     external_links:
-      - "demo_postgres:df_postgres"
+      - "df_postgres:df_postgres"
     command: ['/opt/map/run.sh']
     network_mode: bridge

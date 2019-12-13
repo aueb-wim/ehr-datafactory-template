@@ -6,6 +6,7 @@ from logger import LOGGER
 sys.path.insert(1, os.path.abspath('./anonymization'))
 from anonymize_csv import anonymize_csv
 
+
 def copy_to(src, dst, container):
     """Copies file from host to postgres container
     Arguments:
@@ -50,16 +51,18 @@ def run_docker_compose(source_folder, cnfg_folder, dbprop_folder):
     os.system('docker rm mipmap')
 
 
-def export_csv(output_folder, csv_name,
-               sql_script, container, config, dataset):
+def sql_export_csv(output_folder, strategy,
+                   dbname, dbconfig, dataset):
     """Exports a flat csv from i2b2"""
-    db_user = config['db_docker']['postgres_user']
-    i2b2_name = config['db_docker']['harmonize_db']
-    sql_folder = config['sql_scripts_folder']
+    db_user = dbconfig.user
+    i2b2_name = dbname
+    sql_script = strategy.sql_file
+    sql_folder = strategy.sql_folder
+    container = dbconfig.container
     LOGGER.info('Performing EHR DataFactory export step')
     # try to delete any existing flattened csv in postgres container
     try:
-        cmd_rm_csv = 'rm -rf /tmp/%s' % csv_name
+        cmd_rm_csv = 'rm -rf /tmp/%s' % strategy.csv_name
         container.exec_run(cmd_rm_csv)
     except:
         pass
@@ -71,7 +74,10 @@ def export_csv(output_folder, csv_name,
                                                   i2b2_name,
                                                   sql_script)
     LOGGER.info('Excecuting pivoting sql script...')
-    container.exec_run(cmd_sql)
+    output = container.exec_run(cmd_sql)
+    for out in output:
+        LOGGER.info(out)
+
     # check if the output folder exist, create it otherwise
     if not os.path.exists(output_folder):
         try:
@@ -81,24 +87,25 @@ def export_csv(output_folder, csv_name,
         else:
             LOGGER.info('Output directory %s is created' % output_folder)
     # copy the flatten csv to the Data Factory output folder
-    docker_csv_path = '/tmp/%s' % csv_name
+    docker_csv_path = '/tmp/%s' % strategy.csv_name
     get_from(docker_csv_path, output_folder, container)
-    csv_path = os.path.join(output_folder, csv_name)
+    csv_on_host_ = os.path.join(output_folder, strategy.csv_name)
     csv_temp = os.path.join(output_folder, 'temp.csv')
-    os.rename(csv_path, csv_temp)
-    add_column_csv(csv_temp, csv_path, 'Dataset', dataset)
+    os.rename(csv_on_host_, csv_temp)
+    add_column_csv(csv_temp, csv_on_host_, 'Dataset', dataset)
     os.remove(csv_temp)
-    LOGGER.info('Flat csv is saved in %s' % output_folder)
 
 
-def anonymize_db(output_folder, anon_csv_name, strategy,
-                 container, config, dataset):
-    """Anonymize the i2b2 database & exports in a flat csv"""
-    db_user = config['db_docker']['postgres_user']
-    i2b2_source = config['db_docker']['harmonize_db']
-    i2b2_anonym = config['db_docker']['anonymized_db']
-    anonym_sql = config['anonymization']['anonymization_sql']
-    pivoting_sql = config['anonymization']['strategy'][strategy]
+def anonymize_db(i2b2_source, anonym_sql,
+                 output_folder, strategy,
+                 i2b2_anonym, dbconfig, dataset):
+    """Anonymize the i2b2 database & exports in a flat csv
+    Arguments:
+    :param dbname: name of the database to be anonymized
+    :param output_folder,
+    """
+    container = dbconfig.container
+    db_user = dbconfig.user
     anonymization_folder = os.path.abspath('./anonymization')
     # drop the existing anonymized db and create a new one
     cmd_drop_db = 'psql -U %s -d postgres -c "DROP DATABASE IF EXIST %s;"' % (db_user,
@@ -117,8 +124,8 @@ def anonymize_db(output_folder, anon_csv_name, strategy,
                                                   anonym_sql)
     LOGGER.info('Excecuting anonymization sql script...')
     container.exec_run(cmd_sql)
-    export_csv(output_folder, anon_csv_name, pivoting_sql,
-               container, config, dataset)
+    sql_export_csv(output_folder, strategy,
+                   i2b2_anonym, dbconfig, dataset)
 
 
 def anonymize_csv_wrapper(input_csv, output_folder, anon_csv_name, dataset):

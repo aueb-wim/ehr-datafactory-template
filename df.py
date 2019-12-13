@@ -3,12 +3,17 @@ import os
 import sys
 import argparse
 import json
+import collections
 import docker
 from helpers_docker import run_docker_compose, anonymize_db
-from helpers_docker import export_csv, anonymize_csv_wrapper
+from helpers_docker import sql_export_csv, anonymize_csv_wrapper
 from helpers_imaging import split_subjectcode
 from logger import LOGGER
 
+DbConfig = collections.namedtuple('DbConfig',
+                                  'container, port, user, pwd')
+CsvStrategy = collections.namedtuple('CsvStrategy',
+                                     'sql_folder, sql_file, csv_name')
 
 def main():
     # GET DATAFACTORY CONFIGURATION
@@ -18,13 +23,13 @@ def main():
     # EHR folders
     ehr_source_root = os.path.abspath(config['mipmap']['input_folders']['ehr'])
     dbprop_folder = os.path.abspath(config['mipmap']['dbproperties'])
-    output_root = os.path.abspath(config['flatening']['output_folder'])
+    output_root = os.path.abspath(config['flattening']['output_folder'])
     preprocess_root = os.path.abspath(config['mipmap']['preprocess']['root'])
     capture_root = os.path.abspath(config['mipmap']['capture']['root'])
     harmonize_root = os.path.abspath(config['mipmap']['harmonize']['root'])
-    export = os.path.abspath(config['sql_scripts_folder'])
+    sql_folder = os.path.abspath(config['sql_scripts_folder'])
     # EXPORT STRATEGIES
-    strategies = list(config['flatening']['strategy'].keys())
+    strategies = list(config['flattening']['strategy'].keys())
     # IMAGING etl folders (output of imaging pipeline)
     imaging_source_root = os.path.abspath(config['mipmap']['input_folders']['imaging'])
     imaging_mapping_root = os.path.abspath(config['mipmap']['imaging']['root'])
@@ -32,13 +37,19 @@ def main():
     anonym_output_root = os.path.abspath(config['anonymization']['output_folder'])
     # POSTGRES DOCKER CONTAINER
     container_name = config['db_docker']['container_name']
-    client = docker.from_env()
+    client = docker.from_env(timeout=10800)
     try:
         pg_container = client.containers.get(container_name)
         LOGGER.info('Found postgres container named %s' % container_name)
     except:
         LOGGER.warning('Unable to find db container %s' % container_name)
         exit()
+
+    # docker db credentials 
+    dbconfig = DbConfig(pg_container,
+                        config['db_docker']['postgres_port'],
+                        config['db_docker']['postgres_user'],
+                        config['db_docker']['postgres_pwd'])
 
     parser = argparse.ArgumentParser(description='EHR datafactory cli')
     parser.add_argument('step', choices=['preprocess', 'capture',
@@ -60,6 +71,12 @@ def main():
     parser.add_argument('-d', '--dataset', type=str,
                         help='value for the Dataset column in export csv')
     parser.add_argument('--strategy', choices=strategies)
+
+    parser.add_argument('--csv_name', type=str,
+                        help='the final flattened csv name')
+
+    parser.add_argument('--csv_anon', type=str,
+                        help='input csv file to be anonymized')
 
     args = parser.parse_args(sys.argv[1:])
 
@@ -94,37 +111,66 @@ def main():
 
     # ----ANONIMIZATION PROCESS----
     elif args.step == 'anonymize':
-        flat_anonym_csv = config['anonymization']['anonymized_csv_name']
         output_folder = os.path.join(anonym_output_root, args.output)
         # ---i2b2 database anonymization---
         if args.mode == 'db':
             LOGGER.info('i2b2 db anonymization mode')
-            anonymize_db(output_folder, flat_anonym_csv,
-                         args.strategy, pg_container,
-                         config, args.dataset)
+            anonym_sql = config['anonymization']['anonymization_sql']
+            i2b2_anonym = config['db_docker']['anonymized_db']
+            i2b2_harm = config['db_docker']['harmonize_db']
+            pivoting_sql = config['anonymization']['strategy'][args.strategy]['sql']
+            flat_csv_name = config['anonymization']['strategy'][args.strategy]['csv']
+
+            csv_strategy = CsvStrategy(sql_folder, pivoting_sql, flat_csv_name)
+
+            anonymize_db(i2b2_harm, anonym_sql,
+                         output_folder, csv_strategy,
+                         i2b2_anonym, dbconfig, args.dataset)
+            if args.csv_name:
+                default_name = os.path.join(output_folder, csv_strategy.csv_name)
+                new_name = os.path.join(output_folder, args.csv_name)
+                os.rename(default_name, new_name)
+                LOGGER.info('Anonymized csv %s created in: %s' % (args.csv_name,
+                                                                  output_folder))
+            LOGGER.info('Anonymized csv %s created in: %s' % (flat_csv_name,
+                                                              output_folder))
+
+
+            
+
         # ---csv anonimyzation---
         elif args.mode == 'csv':
             LOGGER.info('csv anonymization mode')
-            flat_csv_name = config['flatening']['export_csv_name']
-            # check if the output folder exist, create it otherwise
-            source_path = os.path.join(output_root, args.source, flat_csv_name)
-
+            
+            source_path = os.path.join(output_root, args.source, args.csv_anon)
             anonymize_csv_wrapper(source_path, output_folder,
-                                  flat_anonym_csv, args.dataset)
-
+                                  args.csv_name, args.dataset)
+            LOGGER.info('Anonymized csv %s created in: %s' % (args.csv_name,
+                                                                  output_folder))
         else:
             LOGGER.warning('Please define anonymization mode, see -m keyword')
 
     # ----CSV FLATTENING ----
     elif args.step == 'export':
-        flat_csv_name = config['flatening']['export_csv_name']
-        pivoting_sql = config['flatening']['strategy'][args.strategy]
-        LOGGER.info('Selected merging strategy: %s' % args.strategy)
+        flat_csv_name = config['flattening']['strategy'][args.strategy]['csv']
+        pivoting_sql = config['flattening']['strategy'][args.strategy]['sql']
+        csv_strategy = CsvStrategy(sql_folder, pivoting_sql, flat_csv_name)
+        LOGGER.info('Selected flattening strategy: %s' % args.strategy)
         output_folder = os.path.join(output_root, args.output)
         dataset = args.dataset
-        export_csv(output_folder, flat_csv_name,
-                   pivoting_sql, pg_container, config, dataset)
-    
+        i2b2_harm = config['db_docker']['harmonize_db']
+        sql_export_csv(output_folder, csv_strategy,
+                       i2b2_harm, dbconfig, dataset)
+        if args.csv_name:
+            default_name = os.path.join(output_folder, csv_strategy.csv_name)
+            new_name = os.path.join(output_folder, args.csv_name)
+            os.rename(default_name, new_name)
+            LOGGER.info('Flat csv %s created in: %s' % (args.csv_name,
+                                                        output_folder))
+        LOGGER.info('Flat csv %s created in: %s' % (flat_csv_name,
+                                                    output_folder))
+
+
     # ----MRI PIPELINE ----
     elif args.step == 'mri':
         script_parallel_path = os.path.abspath('./mri_run_parallel')

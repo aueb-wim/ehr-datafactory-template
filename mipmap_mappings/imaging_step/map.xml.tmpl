@@ -12,17 +12,8 @@
   <source>
     <type>CSV</type>
     <csv>
-      <csv-db-name>imaging</csv-db-name>
+      <csv-db-name>MRIHospital</csv-db-name>
       <csv-tables>
-        <csv-table>
-          <schema>source/PatientMapping.csv</schema>
-          <instances>
-            <instance>
-              <path>source/PatientMapping.csv</path>
-              <column-names>true</column-names>
-            </instance>
-          </instances>
-        </csv-table>
         <csv-table>
           <schema>source/mri_visits.csv</schema>
           <instances>
@@ -42,19 +33,19 @@
           </instances>
         </csv-table>
         <csv-table>
-          <schema>source/unpivoted_volumes_df.csv</schema>
+          <schema>source/PatientMapping.csv</schema>
           <instances>
             <instance>
-              <path>source/unpivoted_volumes_df.csv</path>
+              <path>source/PatientMapping.csv</path>
               <column-names>true</column-names>
             </instance>
           </instances>
         </csv-table>
         <csv-table>
-          <schema>source/volumes_df.csv</schema>
+          <schema>source/unpivoted_volumes_df.csv</schema>
           <instances>
             <instance>
-              <path>source/volumes_df.csv</path>
+              <path>source/unpivoted_volumes_df.csv</path>
               <column-names>true</column-names>
             </instance>
           </instances>
@@ -64,19 +55,18 @@
     <inclusions />
     <exclusions />
     <duplications>
-      <duplication>imaging.EncounterMapping</duplication>
-      <duplication>imaging.PatientMapping</duplication>
-      <duplication>imaging.EncounterMapping</duplication>
-      <duplication>imaging.PatientMapping</duplication>
-      <duplication>imaging.mri_visits</duplication>
+      <duplication>MRIHospital.mri_visits</duplication>
+      <duplication>MRIHospital.PatientMapping</duplication>
+      <duplication>MRIHospital.EncounterMapping</duplication>
+      <duplication>MRIHospital.PatientMapping</duplication>
     </duplications>
     <functionalDependencies />
     <selectionConditions />
     <joinConditions>
       <joinCondition>
         <join>
-          <from>imaging.EncounterMapping_2_.EncounterMappingTuple.patient_ide</from>
-          <to>imaging.PatientMapping_2_.PatientMappingTuple.patient_ide</to>
+          <from>MRIHospital.EncounterMapping.EncounterMappingTuple.encounter_ide</from>
+          <to>MRIHospital.mri_visits.mri_visitsTuple.VISIT_ID</to>
         </join>
         <foreignKey>false</foreignKey>
         <mandatory>true</mandatory>
@@ -84,8 +74,8 @@
       </joinCondition>
       <joinCondition>
         <join>
-          <from>imaging.unpivoted_volumes_df.unpivoted_volumes_dfTuple.VISIT_ID</from>
-          <to>imaging.mri_visits_1_.mri_visitsTuple.VISIT_ID</to>
+          <from>MRIHospital.EncounterMapping.EncounterMappingTuple.patient_ide</from>
+          <to>MRIHospital.PatientMapping.PatientMappingTuple.patient_ide</to>
         </join>
         <foreignKey>false</foreignKey>
         <mandatory>true</mandatory>
@@ -93,8 +83,8 @@
       </joinCondition>
       <joinCondition>
         <join>
-          <from>imaging.volumes_df.volumes_dfTuple.VISIT_ID</from>
-          <to>imaging.mri_visits.mri_visitsTuple.VISIT_ID</to>
+          <from>MRIHospital.unpivoted_volumes_df.unpivoted_volumes_dfTuple.VISIT_ID</from>
+          <to>MRIHospital.mri_visits_1_.mri_visitsTuple.VISIT_ID</to>
         </join>
         <foreignKey>false</foreignKey>
         <mandatory>true</mandatory>
@@ -102,8 +92,8 @@
       </joinCondition>
       <joinCondition>
         <join>
-          <from>imaging.mri_visits.mri_visitsTuple.VISIT_ID</from>
-          <to>imaging.EncounterMapping_1_.EncounterMappingTuple.encounter_ide</to>
+          <from>MRIHospital.unpivoted_volumes_df.unpivoted_volumes_dfTuple.VISIT_ID</from>
+          <to>MRIHospital.EncounterMapping_1_.EncounterMappingTuple.encounter_ide</to>
         </join>
         <foreignKey>false</foreignKey>
         <mandatory>true</mandatory>
@@ -111,17 +101,8 @@
       </joinCondition>
       <joinCondition>
         <join>
-          <from>imaging.EncounterMapping_1_.EncounterMappingTuple.patient_ide</from>
-          <to>imaging.PatientMapping_1_.PatientMappingTuple.patient_ide</to>
-        </join>
-        <foreignKey>false</foreignKey>
-        <mandatory>true</mandatory>
-        <matchString>false</matchString>
-      </joinCondition>
-      <joinCondition>
-        <join>
-          <from>imaging.mri_visits_1_.mri_visitsTuple.VISIT_ID</from>
-          <to>imaging.EncounterMapping_2_.EncounterMappingTuple.encounter_ide</to>
+          <from>MRIHospital.EncounterMapping_1_.EncounterMappingTuple.patient_ide</from>
+          <to>MRIHospital.PatientMapping_2_.PatientMappingTuple.patient_ide</to>
         </join>
         <foreignKey>false</foreignKey>
         <mandatory>true</mandatory>
@@ -147,89 +128,50 @@
   <correspondences>
     <correspondence>
       <source-paths>
-        <source-path>imaging.EncounterMapping.EncounterMappingTuple.encounter_ide</source-path>
+        <source-path>MRIHospital.EncounterMapping.EncounterMappingTuple.encounter_ide</source-path>
       </source-paths>
       <target-path>{{ .Env.i2b2_db_name }}.encounter_mapping.encounter_mappingTuple.encounter_ide</target-path>
-      <transformation-function>imaging.EncounterMapping.EncounterMappingTuple.encounter_ide</transformation-function>
+      <transformation-function>MRIHospital.EncounterMapping.EncounterMappingTuple.encounter_ide</transformation-function>
       <confidence>1.0</confidence>
     </correspondence>
     <correspondence>
       <source-paths>
-        <source-path>imaging.EncounterMapping.EncounterMappingTuple.encounter_ide_source</source-path>
+        <source-path>MRIHospital.EncounterMapping.EncounterMappingTuple.encounter_ide_source</source-path>
       </source-paths>
       <target-path>{{ .Env.i2b2_db_name }}.encounter_mapping.encounter_mappingTuple.encounter_ide_source</target-path>
-      <transformation-function>imaging.EncounterMapping.EncounterMappingTuple.encounter_ide_source</transformation-function>
+      <transformation-function>MRIHospital.EncounterMapping.EncounterMappingTuple.encounter_ide_source</transformation-function>
       <confidence>1.0</confidence>
     </correspondence>
     <correspondence>
       <source-paths>
-        <source-path>imaging.EncounterMapping.EncounterMappingTuple.project_id</source-path>
+        <source-path>MRIHospital.EncounterMapping.EncounterMappingTuple.project_id</source-path>
       </source-paths>
       <target-path>{{ .Env.i2b2_db_name }}.encounter_mapping.encounter_mappingTuple.project_id</target-path>
-      <transformation-function>imaging.EncounterMapping.EncounterMappingTuple.project_id</transformation-function>
+      <transformation-function>MRIHospital.EncounterMapping.EncounterMappingTuple.project_id</transformation-function>
       <confidence>1.0</confidence>
     </correspondence>
     <correspondence>
       <source-paths>
-        <source-path>imaging.EncounterMapping.EncounterMappingTuple.encounter_num</source-path>
+        <source-path>MRIHospital.EncounterMapping.EncounterMappingTuple.encounter_num</source-path>
       </source-paths>
       <target-path>{{ .Env.i2b2_db_name }}.encounter_mapping.encounter_mappingTuple.encounter_num</target-path>
-      <transformation-function>imaging.EncounterMapping.EncounterMappingTuple.encounter_num</transformation-function>
+      <transformation-function>MRIHospital.EncounterMapping.EncounterMappingTuple.encounter_num</transformation-function>
       <confidence>1.0</confidence>
     </correspondence>
     <correspondence>
       <source-paths>
-        <source-path>imaging.EncounterMapping.EncounterMappingTuple.patient_ide</source-path>
+        <source-path>MRIHospital.EncounterMapping.EncounterMappingTuple.patient_ide</source-path>
       </source-paths>
       <target-path>{{ .Env.i2b2_db_name }}.encounter_mapping.encounter_mappingTuple.patient_ide</target-path>
-      <transformation-function>imaging.EncounterMapping.EncounterMappingTuple.patient_ide</transformation-function>
+      <transformation-function>MRIHospital.EncounterMapping.EncounterMappingTuple.patient_ide</transformation-function>
       <confidence>1.0</confidence>
     </correspondence>
     <correspondence>
       <source-paths>
-        <source-path>imaging.EncounterMapping.EncounterMappingTuple.patient_ide_source</source-path>
+        <source-path>MRIHospital.EncounterMapping.EncounterMappingTuple.patient_ide_source</source-path>
       </source-paths>
       <target-path>{{ .Env.i2b2_db_name }}.encounter_mapping.encounter_mappingTuple.patient_ide_source</target-path>
-      <transformation-function>imaging.EncounterMapping.EncounterMappingTuple.patient_ide_source</transformation-function>
-      <confidence>1.0</confidence>
-    </correspondence>
-    <correspondence>
-      <source-paths>
-        <source-path>imaging.PatientMapping.PatientMappingTuple.patient_ide</source-path>
-      </source-paths>
-      <target-path>{{ .Env.i2b2_db_name }}.patient_mapping.patient_mappingTuple.patient_ide</target-path>
-      <transformation-function>imaging.PatientMapping.PatientMappingTuple.patient_ide</transformation-function>
-      <confidence>1.0</confidence>
-    </correspondence>
-    <correspondence>
-      <source-paths>
-        <source-path>imaging.PatientMapping.PatientMappingTuple.patient_ide_source</source-path>
-      </source-paths>
-      <target-path>{{ .Env.i2b2_db_name }}.patient_mapping.patient_mappingTuple.patient_ide_source</target-path>
-      <transformation-function>imaging.PatientMapping.PatientMappingTuple.patient_ide_source</transformation-function>
-      <confidence>1.0</confidence>
-    </correspondence>
-    <correspondence>
-      <source-paths>
-        <source-path>imaging.PatientMapping.PatientMappingTuple.patient_num</source-path>
-      </source-paths>
-      <target-path>{{ .Env.i2b2_db_name }}.patient_mapping.patient_mappingTuple.patient_num</target-path>
-      <transformation-function>imaging.PatientMapping.PatientMappingTuple.patient_num</transformation-function>
-      <confidence>1.0</confidence>
-    </correspondence>
-    <correspondence>
-      <source-paths>
-        <source-path>imaging.PatientMapping.PatientMappingTuple.project_id</source-path>
-      </source-paths>
-      <target-path>{{ .Env.i2b2_db_name }}.patient_mapping.patient_mappingTuple.project_id</target-path>
-      <transformation-function>imaging.PatientMapping.PatientMappingTuple.project_id</transformation-function>
-      <confidence>1.0</confidence>
-    </correspondence>
-    <correspondence>
-      <source-paths />
-      <source-value>datetime()</source-value>
-      <target-path>{{ .Env.i2b2_db_name }}.patient_mapping.patient_mappingTuple.import_date</target-path>
-      <transformation-function>datetime()</transformation-function>
+      <transformation-function>MRIHospital.EncounterMapping.EncounterMappingTuple.patient_ide_source</transformation-function>
       <confidence>1.0</confidence>
     </correspondence>
     <correspondence>
@@ -241,18 +183,26 @@
     </correspondence>
     <correspondence>
       <source-paths>
-        <source-path>imaging.EncounterMapping_1_.EncounterMappingTuple.encounter_num</source-path>
+        <source-path>MRIHospital.EncounterMapping.EncounterMappingTuple.encounter_num</source-path>
       </source-paths>
       <target-path>{{ .Env.i2b2_db_name }}.visit_dimension.visit_dimensionTuple.encounter_num</target-path>
-      <transformation-function>imaging.EncounterMapping_1_.EncounterMappingTuple.encounter_num</transformation-function>
+      <transformation-function>MRIHospital.EncounterMapping.EncounterMappingTuple.encounter_num</transformation-function>
       <confidence>1.0</confidence>
     </correspondence>
     <correspondence>
       <source-paths>
-        <source-path>imaging.PatientMapping_1_.PatientMappingTuple.patient_num</source-path>
+        <source-path>MRIHospital.PatientMapping.PatientMappingTuple.patient_num</source-path>
       </source-paths>
       <target-path>{{ .Env.i2b2_db_name }}.visit_dimension.visit_dimensionTuple.patient_num</target-path>
-      <transformation-function>imaging.PatientMapping_1_.PatientMappingTuple.patient_num</transformation-function>
+      <transformation-function>MRIHospital.PatientMapping.PatientMappingTuple.patient_num</transformation-function>
+      <confidence>1.0</confidence>
+    </correspondence>
+    <correspondence>
+      <source-paths>
+        <source-path>MRIHospital.mri_visits.mri_visitsTuple.PATIENT_AGE</source-path>
+      </source-paths>
+      <target-path>{{ .Env.i2b2_db_name }}.visit_dimension.visit_dimensionTuple.patient_age</target-path>
+      <transformation-function>MRIHospital.mri_visits.mri_visitsTuple.PATIENT_AGE</transformation-function>
       <confidence>1.0</confidence>
     </correspondence>
     <correspondence>
@@ -263,42 +213,82 @@
       <confidence>1.0</confidence>
     </correspondence>
     <correspondence>
-      <source-paths />
-      <source-value>"MRI"</source-value>
-      <target-path>{{ .Env.i2b2_db_name }}.visit_dimension.visit_dimensionTuple.location_cd</target-path>
-      <transformation-function>"MRI"</transformation-function>
+      <source-paths>
+        <source-path>MRIHospital.PatientMapping_1_.PatientMappingTuple.patient_ide</source-path>
+      </source-paths>
+      <target-path>{{ .Env.i2b2_db_name }}.patient_mapping.patient_mappingTuple.patient_ide</target-path>
+      <transformation-function>MRIHospital.PatientMapping_1_.PatientMappingTuple.patient_ide</transformation-function>
       <confidence>1.0</confidence>
     </correspondence>
     <correspondence>
       <source-paths>
-        <source-path>imaging.EncounterMapping_2_.EncounterMappingTuple.encounter_num</source-path>
+        <source-path>MRIHospital.PatientMapping_1_.PatientMappingTuple.patient_ide_source</source-path>
+      </source-paths>
+      <target-path>{{ .Env.i2b2_db_name }}.patient_mapping.patient_mappingTuple.patient_ide_source</target-path>
+      <transformation-function>MRIHospital.PatientMapping_1_.PatientMappingTuple.patient_ide_source</transformation-function>
+      <confidence>1.0</confidence>
+    </correspondence>
+    <correspondence>
+      <source-paths>
+        <source-path>MRIHospital.PatientMapping_1_.PatientMappingTuple.patient_num</source-path>
+      </source-paths>
+      <target-path>{{ .Env.i2b2_db_name }}.patient_mapping.patient_mappingTuple.patient_num</target-path>
+      <transformation-function>MRIHospital.PatientMapping_1_.PatientMappingTuple.patient_num</transformation-function>
+      <confidence>1.0</confidence>
+    </correspondence>
+    <correspondence>
+      <source-paths>
+        <source-path>MRIHospital.PatientMapping_1_.PatientMappingTuple.project_id</source-path>
+      </source-paths>
+      <target-path>{{ .Env.i2b2_db_name }}.patient_mapping.patient_mappingTuple.project_id</target-path>
+      <transformation-function>MRIHospital.PatientMapping_1_.PatientMappingTuple.project_id</transformation-function>
+      <confidence>1.0</confidence>
+    </correspondence>
+    <correspondence>
+      <source-paths />
+      <source-value>datetime()</source-value>
+      <target-path>{{ .Env.i2b2_db_name }}.patient_mapping.patient_mappingTuple.import_date</target-path>
+      <transformation-function>datetime()</transformation-function>
+      <confidence>1.0</confidence>
+    </correspondence>
+    <correspondence>
+      <source-paths>
+        <source-path>MRIHospital.EncounterMapping_1_.EncounterMappingTuple.encounter_num</source-path>
       </source-paths>
       <target-path>{{ .Env.i2b2_db_name }}.observation_fact.observation_factTuple.encounter_num</target-path>
-      <transformation-function>imaging.EncounterMapping_2_.EncounterMappingTuple.encounter_num</transformation-function>
+      <transformation-function>MRIHospital.EncounterMapping_1_.EncounterMappingTuple.encounter_num</transformation-function>
       <confidence>1.0</confidence>
     </correspondence>
     <correspondence>
       <source-paths>
-        <source-path>imaging.PatientMapping_2_.PatientMappingTuple.patient_num</source-path>
+        <source-path>MRIHospital.PatientMapping_2_.PatientMappingTuple.patient_num</source-path>
       </source-paths>
       <target-path>{{ .Env.i2b2_db_name }}.observation_fact.observation_factTuple.patient_num</target-path>
-      <transformation-function>imaging.PatientMapping_2_.PatientMappingTuple.patient_num</transformation-function>
+      <transformation-function>MRIHospital.PatientMapping_2_.PatientMappingTuple.patient_num</transformation-function>
       <confidence>1.0</confidence>
     </correspondence>
     <correspondence>
       <source-paths>
-        <source-path>imaging.unpivoted_volumes_df.unpivoted_volumes_dfTuple.Attribute</source-path>
+        <source-path>MRIHospital.unpivoted_volumes_df.unpivoted_volumes_dfTuple.Attribute</source-path>
       </source-paths>
       <target-path>{{ .Env.i2b2_db_name }}.observation_fact.observation_factTuple.concept_cd</target-path>
-      <transformation-function>imaging.unpivoted_volumes_df.unpivoted_volumes_dfTuple.Attribute</transformation-function>
+      <transformation-function>MRIHospital.unpivoted_volumes_df.unpivoted_volumes_dfTuple.Attribute</transformation-function>
       <confidence>1.0</confidence>
     </correspondence>
     <correspondence>
       <source-paths>
-        <source-path>imaging.EncounterMapping_2_.EncounterMappingTuple.project_id</source-path>
+        <source-path>MRIHospital.EncounterMapping_1_.EncounterMappingTuple.project_id</source-path>
       </source-paths>
       <target-path>{{ .Env.i2b2_db_name }}.observation_fact.observation_factTuple.provider_id</target-path>
-      <transformation-function>imaging.EncounterMapping_2_.EncounterMappingTuple.project_id</transformation-function>
+      <transformation-function>MRIHospital.EncounterMapping_1_.EncounterMappingTuple.project_id</transformation-function>
+      <confidence>1.0</confidence>
+    </correspondence>
+    <correspondence>
+      <source-paths>
+        <source-path>MRIHospital.mri_visits_1_.mri_visitsTuple.VISIT_DATE</source-path>
+      </source-paths>
+      <target-path>{{ .Env.i2b2_db_name }}.observation_fact.observation_factTuple.start_date</target-path>
+      <transformation-function>todate(MRIHospital.mri_visits_1_.mri_visitsTuple.VISIT_DATE, "dd/mm/yyyy")</transformation-function>
       <confidence>1.0</confidence>
     </correspondence>
     <correspondence>
@@ -330,10 +320,11 @@
       <confidence>1.0</confidence>
     </correspondence>
     <correspondence>
-      <source-paths />
-      <source-value>datetime()</source-value>
-      <target-path>{{ .Env.i2b2_db_name }}.observation_fact.observation_factTuple.import_date</target-path>
-      <transformation-function>datetime()</transformation-function>
+      <source-paths>
+        <source-path>MRIHospital.unpivoted_volumes_df.unpivoted_volumes_dfTuple.Value</source-path>
+      </source-paths>
+      <target-path>{{ .Env.i2b2_db_name }}.observation_fact.observation_factTuple.nval_num</target-path>
+      <transformation-function>MRIHospital.unpivoted_volumes_df.unpivoted_volumes_dfTuple.Value</transformation-function>
       <confidence>1.0</confidence>
     </correspondence>
     <correspondence>
@@ -341,10 +332,17 @@
       <source-value>
         newId()_Seq1
         <sequence>Seq1</sequence>
-        <offset>0</offset>
+        <offset>1</offset>
       </source-value>
       <target-path>{{ .Env.i2b2_db_name }}.observation_fact.observation_factTuple.text_search_index</target-path>
       <transformation-function>newId()</transformation-function>
+      <confidence>1.0</confidence>
+    </correspondence>
+    <correspondence>
+      <source-paths />
+      <source-value>"MRI"</source-value>
+      <target-path>{{ .Env.i2b2_db_name }}.visit_dimension.visit_dimensionTuple.location_cd</target-path>
+      <transformation-function>"MRI"</transformation-function>
       <confidence>1.0</confidence>
     </correspondence>
     <correspondence>
@@ -355,27 +353,18 @@
       <confidence>1.0</confidence>
     </correspondence>
     <correspondence>
-      <source-paths>
-        <source-path>imaging.unpivoted_volumes_df.unpivoted_volumes_dfTuple.Value</source-path>
-      </source-paths>
-      <target-path>{{ .Env.i2b2_db_name }}.observation_fact.observation_factTuple.nval_num</target-path>
-      <transformation-function>todouble(imaging.unpivoted_volumes_df.unpivoted_volumes_dfTuple.Value)</transformation-function>
+      <source-paths />
+      <source-value>datetime()</source-value>
+      <target-path>{{ .Env.i2b2_db_name }}.observation_fact.observation_factTuple.import_date</target-path>
+      <transformation-function>datetime()</transformation-function>
       <confidence>1.0</confidence>
     </correspondence>
     <correspondence>
       <source-paths>
-        <source-path>imaging.mri_visits.mri_visitsTuple.VISIT_DATE</source-path>
+        <source-path>MRIHospital.mri_visits.mri_visitsTuple.VISIT_DATE</source-path>
       </source-paths>
       <target-path>{{ .Env.i2b2_db_name }}.visit_dimension.visit_dimensionTuple.start_date</target-path>
-      <transformation-function>todate(imaging.mri_visits.mri_visitsTuple.VISIT_DATE, "dd/mm/yyyy")</transformation-function>
-      <confidence>1.0</confidence>
-    </correspondence>
-    <correspondence>
-      <source-paths>
-        <source-path>imaging.mri_visits_1_.mri_visitsTuple.VISIT_DATE</source-path>
-      </source-paths>
-      <target-path>{{ .Env.i2b2_db_name }}.observation_fact.observation_factTuple.start_date</target-path>
-      <transformation-function>todate(imaging.mri_visits_1_.mri_visitsTuple.VISIT_DATE, "dd/mm/yyyy")</transformation-function>
+      <transformation-function>todate(MRIHospital.mri_visits.mri_visitsTuple.VISIT_DATE, "dd/mm/yyyy")</transformation-function>
       <confidence>1.0</confidence>
     </correspondence>
   </correspondences>
