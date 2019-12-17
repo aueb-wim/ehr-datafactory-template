@@ -184,22 +184,48 @@ As `mapping config folder` we give just the corresponding subfolder name and not
 In DataFactory folder run
 
 ```shell
-./df.py export -o <output folder> --strategy <flattening method> --dataset <string value>
+./df.py export -o <output folder> (--csv_name <flat csv name>) --strategy <flattening method> --dataset <string value>
 ```
 
-As `output folder` we give just the folder name and not the whole path and `harmonized_clinical_data.csv` is created in this output folder. 
-`--strategy` we declare the csv flattening method
-`--dataset` we declare the value that is going to be filled in the final csv under the column 'Dataset'
+As `output folder` we give just the folder name and not the whole path where the flat csv file is created.
+`--csv_name` (optional) if it is given, it overrides the defalut strategy's flat csv name with the given value.
+`--strategy` we declare the csv flattening method.
+`--dataset` we declare the value that is going to be filled in the final csv under the column 'Dataset'.
 
 ### Anonymization
 
-In DataFactory folder run
+For Anonymization we have 2 options:
+
+1. Copy the i2b2 harmonized db and anonymize it, and then export the flat csv with a given strategy.
+
+2. Anonymize a previously exported flattened csv.
+
+For the case `1` , in DataFactory folder run:
 
 ```shell
-./df.py anonymize -m <mode> (-s <source csv folder>) -o <anon output folder> (--dataset <string value>) (--strategy <flattening method>)
+./df.py anonymize -m db -o <anon output folder>  (--csv_name <csv file name>) --strategy <flattening method>  --dataset <string value>
 ```
 
-`-m` can take two flags `csv` or `db`. Choose `csv` for anonymizing a previously exported flat csv in the folder given in `-s` keyword. Choose `db` for anonymizing the harmonized db and then exporting a flat csv, also include `--strategy` and choose  csv flatening method and give the dataset name value after `--dataset`.
+`-o` we give just the folder name (not the whole path) where the output anonymized csv will be placed. This folder is located in `/data/DataFactory/anonymized_output/`
+
+`--csv_name` (optional) if it is given, it overrides the defalut strategy's flat csv name with the given value.
+
+`--strategy` we declare the csv flattening method.
+
+`--dataset` we declare the value that is going to be filled in the final csv under the column 'Dataset'.
+
+For the  case `2`, in DataFactory folder run:
+
+```shell
+./df.py anonymize -m csv -s <source csv folder> --csv_anon <input csv file name> -o <anon output folder> --csv_name <output csv file name>
+```
 
 As `anon output folder` in `-o` keyword,  we give just the folder name and not the whole path (for example `1`).
-`harmonized_clinical_anon_data.csv` is created in this output folder (for example in `/data/DataFactory/output/1`)
+
+`-s` we give the folder name, located in `/data/DataFactory/output`, which contains the input flat csv.
+
+`--csv_anon` we give the input flat csv which is going to be anonymized.
+
+`-o` we give just the folder name (not the whole path) where the output anonymized csv will be placed. This folder is located in `/data/DataFactory/anonymized_output/`
+
+`--csv_name` we give the final anonymized csv name.
