@@ -17,7 +17,7 @@ This repo contains a wrapper script for running DataFactory EHR and MRI pipeline
 ## Deployment and Configuration
 
 It is suggested to use the ansible script [here](https://github.com/aueb-wim/ansible-datafactory) for installing and creating the datafactory data folders.
-Alternative, you could manually clone this repo, update the `config.json` and create the following folder structure.
+Alternatively, you can manually clone this repo, update the `config.json` and create the following folder structure.
 
 ### Data Factory Folders
 
@@ -61,11 +61,11 @@ Then run:
  ./update_files.py
 ```
 
-Then create DataFactory databases
+Then create the DataFactory databases
 
-**Caution!** The following creation script drop any prexisting DataFactory database. Skip this step if there is no such need *i.e. when importing a second batch of hospital data.* 
+**Caution!** The following creation script drops any prexisting DataFactory database. Skip this step if there is no such need *i.e. when importing a second batch of hospital data.* 
 
-for droping and creating all databases at once
+for dropping and creating all databases at once
 
 ```shell
 $ sh build_dbs.sh all
@@ -78,7 +78,7 @@ i2b2-setup-harmonized exited with code 0
 i2b2-setup exited with code 0
 ```
 
-You can use the psql terminal tool or pgAdmin to recheck if the three DataFactory databases are created.
+You can use the psql terminal tool or pgAdmin to recheck if the three DataFactory databases have been created.
 
 If you want to create a specific database give the following command:
 
@@ -104,20 +104,20 @@ $ sh build_dbs.sh harmonize
 
 The mapping configuration files are placed in subfolders in the folder `/opt/DataFactory/mipmap_mappings`.
 
-For the proprocess step we create a new folder in `/preprocess_step` and named it accordingly (ie `1` if is the first version of this configuration) and then place the configuration files in.
+For the preprocess step create a new folder in `/preprocess_step` and name it accordingly (ie `1` if is the first version of this configuration) and then place the configuration files in.
 
-For the capture step we create a new folder in `/capture_step` and named it accordingly (ie `1` if is the first version of this configuration) and then place the configuration files in.
+For the capture step create a new folder in `/capture_step` and name it accordingly (ie `1` if is the first version of this configuration) and then place the configuration files in.
 
-For the harmonize step we create a new folder in `/harmonize_step` and named it accordingly (ie `1` if is the first version of this configuration) and then place the configuration files in.
+For the harmonize step create a new folder in `/harmonize_step` and name it accordingly (ie `1` if is the first version of this configuration) and then place the configuration files in.
 
 **Please change the rights of the folders in order to be readable and writable for the `datafactory` user group.**
 
 ## DataFactory data folders
 
-The ehr files must be placed in a subfolder in the folder `/data/DataFactory/EHR/input` and named it accordingly  (ie `1` if is the first batch of data)
+The ehr files must be placed in a subfolder in the folder `/data/DataFactory/EHR/input` and named accordingly  (ie `1` if is the first batch of data)
 Please check the documentation for more information about the ehr files in the repository where the hospital's mapping tasks configuration files are stored.
 
-The niftii files must be placed in a subfolder in the folder `/data/DataFactory/MRI/nifti/raw` and named it accordingly (For example, in case we have a first batch of MRIs, we place them into the folder `/data/DataFactory/MRI/dicom/raw/1`.). The files must contain full-brain T1-weighted MRI data in nifti format and named `<patient_id>_<visit_id>.nii`.
+The niftii files must be placed in a subfolder in the folder `/data/DataFactory/MRI/nifti/raw` and named accordingly (For example, in case we have a first batch of MRIs, we place them into the folder `/data/DataFactory/MRI/dicom/raw/1`.). The files must contain full-brain T1-weighted MRI data in nifti format and named `<patient_id>_<visit_id>.nii`.
 
 ## Running DataFactory pipeline
 
@@ -131,21 +131,21 @@ In DataFactory folder run
 ./df.py mri -s <input folder>
 ```
 
-As `input folder` we give just the subfolder name in `/data/DataFactory/MRI/dicom/raw/` and not the whole path. For example just `1`, `v1` or `2` etc.
-The output of this step is a `volumes.csv` files with the volumetric data of all the MRIs. This file is stored in a subfolder with the same name given as `input_folder` the folder `/data/DataFactory/imaging`. For example `/data/DataFactory/imaging/1`.  
+As `input folder` give the subfolder name in `/data/DataFactory/MRI/dicom/raw/` and not the whole path. For example just `1`, `v1` or `2` etc.
+The output of this step is a `volumes.csv` file with the volumetric data of all the MRIs. This file is stored in a subfolder with the same name given as `input_folder` in the folder `/data/DataFactory/imaging`. For example `/data/DataFactory/imaging/1`.  
 
 
 #### Importing the volumetric brain features into the i2b2 capture database
 
-In the folder where the output file `volumes.csv` is stored from the previous step, we must place a csv file with the name `mri_visits.csv`. This file must have the headers `PATIENT_ID`, `VISIT_ID`, `VISIT_DATE` and filled with these MRI information. The column `VISIT_DATE` must have the `dd/mm/yyyy` date format.
+In the folder where the output file `volumes.csv` is stored from the previous step, we place a csv file with the name `mri_visits.csv`. This file must have the headers `PATIENT_ID`, `VISIT_ID`, `VISIT_DATE` and be filled with this MRI information. The column `VISIT_DATE` must have the `dd/mm/yyyy` date format.
 
-After this, in DataFactory folder run
+Then, in DataFactory folder run
 
 ```shell
 ./df.py imaging -s <input folder>
 ```
 
-As `input folder` we give just the subfolder name in `/data/DataFactory/imaging` and not the whole path. For example just `1`, `v1` or `2` etc.
+As `input folder` give just the subfolder name in `/data/DataFactory/imaging` and not the whole path. For example just `1`, `v1` or `2` etc.
 
 ### EHR pipeline
 
