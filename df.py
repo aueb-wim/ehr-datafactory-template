@@ -112,6 +112,7 @@ def main():
     # ----ANONIMIZATION PROCESS----
     elif args.step == 'anonymize':
         output_folder = os.path.join(anonym_output_root, args.output)
+        hash_df = config['anonymization']['hash_method']
         # ---i2b2 database anonymization---
         if args.mode == 'db':
             LOGGER.info('i2b2 db anonymization mode')
@@ -124,7 +125,7 @@ def main():
             csv_strategy = CsvStrategy(sql_folder, pivoting_sql, flat_csv_name)
 
             anonymize_db(i2b2_harm, anonym_sql,
-                         output_folder, csv_strategy,
+                         output_folder, hash_df, csv_strategy,
                          i2b2_anonym, dbconfig, args.dataset)
             if args.csv_name:
                 default_name = os.path.join(output_folder, csv_strategy.csv_name)
@@ -135,18 +136,15 @@ def main():
             LOGGER.info('Anonymized csv %s created in: %s' % (flat_csv_name,
                                                               output_folder))
 
-
-            
-
         # ---csv anonimyzation---
         elif args.mode == 'csv':
             LOGGER.info('csv anonymization mode')
-            
+
             source_path = os.path.join(output_root, args.source, args.csv_anon)
             anonymize_csv_wrapper(source_path, output_folder,
-                                  args.csv_name, args.dataset)
+                                  args.csv_name, hash_df, args.dataset)
             LOGGER.info('Anonymized csv %s created in: %s' % (args.csv_name,
-                                                                  output_folder))
+                                                              output_folder))
         else:
             LOGGER.warning('Please define anonymization mode, see -m keyword')
 

@@ -97,7 +97,7 @@ def sql_export_csv(output_folder, strategy,
 
 
 def anonymize_db(i2b2_source, anonym_sql,
-                 output_folder, strategy,
+                 output_folder, hash_df, strategy,
                  i2b2_anonym, dbconfig, dataset):
     """Anonymize the i2b2 database & exports in a flat csv
     Arguments:
@@ -118,25 +118,35 @@ def anonymize_db(i2b2_source, anonym_sql,
     # copy the anonymization sql to the postgres container
     sql_script_path = os.path.join(anonymization_folder, anonym_sql)
     copy_to(sql_script_path, '/tmp/', container)
-    # run the anonymization sql script
+    # create the anonymization function though sql script
     cmd_sql = 'psql -q -U %s -d %s -f /tmp/%s' % (db_user,
                                                   i2b2_anonym,
                                                   anonym_sql)
+    # run the anonymization function
+    cmd_run = 'psql -U %s -d %s -c "SELECT anonymized_db(%s);"' % (db_user,
+                                                                   i2b2_anonym,
+                                                                   hash_df)
     LOGGER.info('Excecuting anonymization sql script...')
     container.exec_run(cmd_sql)
+    container.exec_run(cmd_run)
     sql_export_csv(output_folder, strategy,
                    i2b2_anonym, dbconfig, dataset)
 
 
-def anonymize_csv_wrapper(input_csv, output_folder, anon_csv_name, dataset):
+def anonymize_csv_wrapper(input_csv, output_folder, anon_csv_name,
+                          hash_df, dataset):
     if not os.path.exists(output_folder):
         try:
             os.makedirs(output_folder)
             LOGGER.info('Output directory %s is created' % output_folder)
         except OSError:
             LOGGER.warning('Creation of the output directory %s failed' % output_folder)
+    if hash_df == 'sha224':
+        hash_method = 'sha3'
+    elif hash_df == 'md5':
+        hash_method = 'md5'
     output_path = os.path.join(output_folder, anon_csv_name)
-    anonymize_csv(input_csv, output_path, columns=[0], method='sha3')
+    anonymize_csv(input_csv, output_path, columns=[0], method=hash_method)
     LOGGER.info('Anonymized csv is saved in %s' % output_path)
 
 

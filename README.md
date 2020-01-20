@@ -132,8 +132,7 @@ In DataFactory folder run
 ```
 
 As `input folder` we give just the subfolder name in `/data/DataFactory/MRI/dicom/raw/` and not the whole path. For example just `1`, `v1` or `2` etc.
-The output of this step is a `volumes.csv` files with the volumetric data of all the MRIs. This file is stored in a subfolder with the same name given as `input_folder` the folder `/data/DataFactory/imaging`. For example `/data/DataFactory/imaging/1`.  
-
+The output of this step is a `volumes.csv` files with the volumetric data of all the MRIs. This file is stored in a subfolder with the same name given as `input_folder` in the folder `/data/DataFactory/imaging`. For example `/data/DataFactory/imaging/1`.  
 
 #### Importing the volumetric brain features into the i2b2 capture database
 
@@ -199,6 +198,9 @@ For Anonymization we have 2 options:
 1. Copy the i2b2 harmonized db and anonymize it, and then export the flat csv with a given strategy.
 
 2. Anonymize a previously exported flattened csv.
+
+
+Also, there are currently 2 anonymization hash methods: **md5** and **sha224**. We can declare which of those 2 methods is going to be used in the DataFactory anonymization step by updating the `hash_method` field in `config.json` file.
 
 For the case `1` , in DataFactory folder run:
 

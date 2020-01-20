@@ -48,6 +48,7 @@
     "anonymization":{
         "anonymization_sql": "anonymize_db_ides.sql",
         "output_folder": "tests/data/anonymized_output/",
+        "hash_method": "sha224",
         "strategy":{
             "mindate":{
                 "sql": "pivot_i2b2_MinDate_fed.sql",
