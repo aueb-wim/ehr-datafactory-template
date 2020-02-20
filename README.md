@@ -190,6 +190,7 @@ In DataFactory folder run
 As `output folder` we give just the folder name and not the whole path where the flat csv file is created.
 `--csv_name` (optional) if it is given, it overrides the defalut strategy's flat csv name with the given value.
 `--strategy` we declare the csv flattening method. The choices (defined in config.json) are the following:
+
            1. 'mindate': For each patient, export one row with all information related to her first visit
            
            2. 'maxdate': For each patient, export one row with all information related to her last visit
