@@ -189,7 +189,14 @@ In DataFactory folder run
 
 As `output folder` we give just the folder name and not the whole path where the flat csv file is created.
 `--csv_name` (optional) if it is given, it overrides the defalut strategy's flat csv name with the given value.
-`--strategy` we declare the csv flattening method.
+`--strategy` we declare the csv flattening method. The choices (defined in config.json) are the following:
+           1. 'mindate': For each patient, export one row with all information related to her first visit
+           2. 'maxdate': For each patient, export one row with all information related to her last visit
+           3. '6months': For each patient, export one row with the information according to the 6-month window selection strategy defined by CHUV for clinical data related to MRI's. The criteria in detail:
+               - For a patient to have a row in the output CSV she has to have an MRI and a VALID Diagnosis (etiology1 !=“diagnostic en attente” and etiology1 != “NA”) in a 6-month window to the MRI. If there are more than one MRIs choose the first one. If there are more than one Diagnosis, choose the closest VALID to the MRI.
+               - The age and the visit date selected are the ones of the Diagnosis.
+               - Having information about MMSE and MoCA is optional. Has to be within a 6-month window to the Diagnosis date.
+           4. 'longitude': For each patient, export all available information.
 `--dataset` we declare the value that is going to be filled in the final csv under the column 'Dataset'.
 
 ### Anonymization
