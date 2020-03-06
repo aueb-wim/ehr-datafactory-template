@@ -122,7 +122,7 @@ END CASE;
 		
 	    BEGIN
 		execute format('insert into ' || table_name  || '( subjectcode, subjectageyears, subjectage, gender, dataset, agegroup) VALUES (''' || subjectcodeide || ''',' || subjectageyears || ',' || subjectage || ',''' || gender || ''',''' || dataset_const || ''',' || agegroup || ')');
-		END IF;
+--		END IF;
 		usedid := usedid || ',' || subjectcodeide ||',';
 		countInserts=countInserts+1;
 	    EXCEPTION WHEN others then
