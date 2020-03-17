@@ -1,3 +1,4 @@
 docker >= 4.0.2
 jinja2 >= 2.8
 pysha3 >= 1.0.2
+click

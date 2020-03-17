@@ -2,9 +2,14 @@ import tarfile
 import os
 import csv
 import sys
+import collections
 from logger import LOGGER
 sys.path.insert(1, os.path.abspath('./anonymization'))
 from anonymize_csv import anonymize_csv
+
+
+CsvStrategy = collections.namedtuple('CsvStrategy',
+                                     'sql_folder, sql_file, csv_name')
 
 
 def copy_to(src, dst, container):
@@ -96,19 +101,21 @@ def sql_export_csv(output_folder, strategy,
     os.remove(csv_temp)
 
 
-def anonymize_db(i2b2_source, anonym_sql,
-                 output_folder, hash_df, strategy,
-                 i2b2_anonym, dbconfig, dataset):
+def anonymize_db(i2b2_source, i2b2_anonym, anonym_sql,
+                 hash_function, dbconfig):
     """Anonymize the i2b2 database & exports in a flat csv
     Arguments:
-    :param dbname: name of the database to be anonymized
-    :param output_folder,
+    :param i2b2_source: name of the database to be anonymized
+    :param i2b2_anon: name of the anonymized i2b2 database
+    :anonym_sql: filename of the anonymization sql script
+    :hash_function: hash function for anonymization
+    :dbconfig: a named tuple config for db connection
     """
     container = dbconfig.container
     db_user = dbconfig.user
     anonymization_folder = os.path.abspath('./anonymization')
     # drop the existing anonymized db and create a new one
-    cmd_drop_db = 'psql -U %s -d postgres -c "DROP DATABASE IF EXIST %s;"' % (db_user,
+    cmd_drop_db = 'psql -U %s -d postgres -c "DROP DATABASE IF EXISTS %s;"' % (db_user,
                                                                               i2b2_anonym)
     LOGGER.info('Dropping previous anonymized i2b2 database')
     container.exec_run(cmd_drop_db)
@@ -118,19 +125,20 @@ def anonymize_db(i2b2_source, anonym_sql,
     # copy the anonymization sql to the postgres container
     sql_script_path = os.path.join(anonymization_folder, anonym_sql)
     copy_to(sql_script_path, '/tmp/', container)
-    # create the anonymization function though sql script
+
+    # command for the anonymization function though sql script
     cmd_sql = 'psql -q -U %s -d %s -f /tmp/%s' % (db_user,
                                                   i2b2_anonym,
                                                   anonym_sql)
-    # run the anonymization function
-    cmd_run = 'psql -U %s -d %s -c "SELECT anonymized_db(%s);"' % (db_user,
-                                                                   i2b2_anonym,
-                                                                   hash_df)
-    LOGGER.info('Excecuting anonymization sql script...')
     container.exec_run(cmd_sql)
+    # run the anonymization function
+    LOGGER.info('Excecuting anonymization sql script...')
+    hash_function = "'" + hash_function + "'"
+    cmd_run = 'psql -U %s -d %s -c "SELECT anonymize_db(%s);"' % (db_user,
+                                                                   i2b2_anonym,
+                                                                   hash_function)
     container.exec_run(cmd_run)
-    sql_export_csv(output_folder, strategy,
-                   i2b2_anonym, dbconfig, dataset)
+    LOGGER.info('Anonymized i2b2 db is created.')
 
 
 def anonymize_csv_wrapper(input_csv, output_folder, anon_csv_name,
@@ -182,3 +190,40 @@ def add_column_csv(csv_path_in, csv_path_out, column, value):
                 for row in csv_reader:
                     row[index] = value
                     csv_writer.writerow(row)
+
+
+def extract2csv(ctx, i2b2_db, output_folder,
+                strategy, dataset, csv_name=None, anonymized=False):
+    """
+    Creates a flat csv from i2b2 db according to the given strategy. 
+    """
+    # load root folders from config.json
+    config = ctx.obj['cfgjson']
+    dbconfig = ctx.obj['dbconfig']
+
+    sql_folder = config['sql_scripts_folder']
+
+    # get the folders and scripts for flattening or for anoymization
+    if anonymized:
+        flag = 'anonymization'
+    else:
+        flag = 'flattening'
+
+    output_root = config[flag]['output_folder']
+
+    flat_csv_name = config[flag]['strategy'][strategy]['csv']
+    pivoting_sql = config[flag]['strategy'][strategy]['sql']
+
+    csv_strategy = CsvStrategy(sql_folder, pivoting_sql, flat_csv_name)
+    LOGGER.info('Selected flattening strategy: %s' % strategy)
+    output_path = os.path.join(output_root, output_folder)
+
+    # export the csv file into the output_folder
+    sql_export_csv(output_path, csv_strategy,
+                   i2b2_db, dbconfig, dataset)
+
+    # overide the csv name if the option is given
+    if csv_name:
+        default_name = os.path.join(output_path, csv_strategy.csv_name)
+        new_name = os.path.join(output_folder, csv_name)
+        os.rename(default_name, new_name)
