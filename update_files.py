@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 """This script updates the jinja template files placed 
 in template folder with the values of the config.json file.
 """
@@ -72,6 +72,35 @@ def update_bash_scripts(config):
     template.stream(vars).dump('build_dbs.sh')
 
 
+def create_df_data_folders(config):
+    
+    df_output_path = config['flattening']['output_folder']
+    os.makedirs(df_output_path, exist_ok=True)
+    
+    df_anon_output_path = config['anonymization']['output_folder']
+    os.makedirs(df_anon_output_path, exist_ok=True)
+
+    df_ehr_input_path = config['mipmap']['input_folders']['ehr']
+    os.makedirs(df_ehr_input_path, exist_ok=True)
+
+    df_imaging_input_path = config['mipmap']['input_folders']['imaging']
+    os.makedirs(df_imaging_input_path, exist_ok=True)
+
+    df_nmm_nifti_raw_input = config['mri']['input_folders']['nifti']['raw']
+    os.makedirs(df_nmm_nifti_raw_input, exist_ok=True)
+
+    df_nmm_nifti_input = config['mri']['input_folders']['root']
+    os.makedirs(df_nmm_nifti_input, exist_ok=True)
+
+    df_nmm_dicom_raw_input = config['mri']['input_folders']['dicom']['raw']
+    os.makedirs(df_nmm_dicom_raw_input, exist_ok=True)
+
+    df_nmm_dicom_input = config['mri']['input_folders']['dicom']['root']
+    os.makedirs(df_nmm_dicom_input, exist_ok=True)
+
+    df_nmm_spm12_output = config['mri']['output_folders']['spm12']
+    os.makedirs(df_nmm_spm12_output, exist_ok=True)
+
 
 # Get the DataFactory configuration
 with open('config.json') as json_data_file:
@@ -80,3 +109,4 @@ with open('config.json') as json_data_file:
 update_compose(config)
 update_image_mapping(config)
 update_bash_scripts(config)
+create_df_data_folders(config)
