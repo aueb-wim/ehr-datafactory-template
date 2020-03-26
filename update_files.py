@@ -5,6 +5,7 @@ in template folder with the values of the config.json file.
 
 import logging
 import os
+import grp
 import json
 from jinja2 import Environment, FileSystemLoader
 from logger import LOGGER
@@ -89,7 +90,7 @@ def create_df_data_folders(config):
     df_nmm_nifti_raw_input = config['mri']['input_folders']['nifti']['raw']
     os.makedirs(df_nmm_nifti_raw_input, exist_ok=True)
 
-    df_nmm_nifti_input = config['mri']['input_folders']['root']
+    df_nmm_nifti_input = config['mri']['input_folders']['nifti']['root']
     os.makedirs(df_nmm_nifti_input, exist_ok=True)
 
     df_nmm_dicom_raw_input = config['mri']['input_folders']['dicom']['raw']
@@ -101,6 +102,14 @@ def create_df_data_folders(config):
     df_nmm_spm12_output = config['mri']['output_folders']['spm12']
     os.makedirs(df_nmm_spm12_output, exist_ok=True)
 
+    # Get the data input output datafactory root folder
+    #df_data_path = os.path.commonpath([df_ehr_input_path, df_imaging_input_path])
+
+    # get the GID of datafactory group
+    #df_gid = grp.getgrnam('datafactory').gr_gid
+
+    # Change the group ownership from root to datafactory
+    #os.chown(df_data_path, uid=-1, gid=df_gid,)
 
 # Get the DataFactory configuration
 with open('config.json') as json_data_file:

@@ -19,7 +19,7 @@
             }
         },
         "input_folders":{
-            "ehr":"/data/DataFactory/EHR/input",
+            "ehr":"/data/DataFactory/EHR",
             "imaging":"/data/DataFactory/imaging"
         }
     },

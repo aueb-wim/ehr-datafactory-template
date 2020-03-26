@@ -4,8 +4,8 @@ import csv
 import sys
 import collections
 from logger import LOGGER
-sys.path.insert(1, os.path.abspath('./anonymization'))
-from anonymize_csv import anonymize_csv
+#sys.path.insert(1, os.path.abspath('./anonymization'))
+from anonymization.anonymize_csv import anonymize_csv
 
 
 CsvStrategy = collections.namedtuple('CsvStrategy',
