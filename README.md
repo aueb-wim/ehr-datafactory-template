@@ -17,51 +17,97 @@ This repo contains a wrapper script for running DataFactory EHR and MRI pipeline
 ## Deployment and Configuration
 
 It is suggested to use the ansible script [here](https://github.com/aueb-wim/ansible-datafactory) for installing and creating the datafactory data folders.
-Alternatively, you can manually clone this repo, update the `config.json` and create the following folder structure.
+Alternatively, you can manually clone this repo in `/opt/DataFactory`. 
 
-### Data Factory Folders
+```shell
+sudo git clone --recurse-submodules <repo_url> /opt/DataFactory
+```
 
-| Path                                             | Description                                   |
-| ------------------------------------------------ | --------------------------------------------- |
-| /opt/DataFactory                                 | DataFactory main folder                       |
-| /opt/DataFactory/dbproperties                    | DataFactory db properties folder              |
-| /data/DataFactory/EHR/input                      | DataFactory EHR data root input folder        |
-| /data/DataFactory/MRI/dicom/raw                  | DataFactory DICOM raw data root input folder  |
-| /data/DataFactory/MRI/nifti/raw                  | DataFactory NIFTI raw data root input folder  |
-| /data/DataFactory/imaging                        | DataFactory imaging data root input folder    |
-| /data/DataFactory/output/                        | DataFactory output root folder                |
-| /data/DataFactory/anonymized_output/             | DataFactory anonymized output root folder     |
-| /opt/DataFactory/mipmap_mappings/preprocess_step | DataFactory preprocess step config root folder|
-| /opt/DataFactory/mipmap_mappings/capture_step    | DataFactory capture step config root folder   |
-| /opt/DataFactory/mipmap_mappings/harmonize_step  | DataFactory harmonize step config root folder |
-| /opt/DataFactory/mipmap_mappings/imaging_step    | DataFactory imaging mapping config folder     |
-| /opt/DataFactory/export_step                     | DataFactory export sql scripts folder         |
+### DataFacotry user settings
 
-### Data Factory enviroment variables
+Create user group `datafactory`:
 
-| Variable name            | Description                                    |
-| ------------------------ | ---------------------------------------------- |
-| DF_PATH                  | path of DataFactory scripts folder             |
-| DF_DATA_PATH             | path of DataFactory DATA folder                |
+```shell
+sudo groupadd datafactory
+```
+
+Datafactory User must be in the user group `docker`, so the scripts will run without the “sudo” command. To do that, follow the below instructions:
+
+Add the `docker` group if it doesn't already exist:
+
+```shell
+ sudo groupadd docker
+ ```
+
+Add the connected user "$USER" to the `docker` and `datafactory` group. Change the user name to match your preferred user if you do not want to use your current user:
+
+```shell
+sudo gpasswd -a $USER docker
+sudo gpasswd -a $USER datafactory
+```
+
+Either do a newgrp docker or log out/in to activate the changes to groups.
+You can use `$ docker run hello-world`  to check if you can run docker without sudo.
 
 ### Install python packages
 
 In /opt/DataFactory folder run:
 
 ```shell
-pip install -r requirements.txt --user
+pip3 install -r --user requirements.txt 
 ```
 
-### update files
+In case of `locale.Error: unsupported locale setting` give the below command and rerun the above pip command:
+
+```shell
+export LC_ALL=C
+```
+
+### Data Factory Folders
+
+The `config.json` contains the following folder structure as default.
+
+| Path                                             | Description                                   |
+| ------------------------------------------------ | --------------------------------------------- |
+| /data/DataFactory                                | DataFactory data folder                       |
+| /data/DataFactory/EHR                            | DataFactory EHR data root input folder        |
+| /data/DataFactory/MRI/dicom/raw                  | DataFactory DICOM raw data root input folder  |
+| /data/DataFactory/MRI/nifti/raw                  | DataFactory NIFTI raw data root input folder  |
+| /data/DataFactory/imaging                        | DataFactory imaging data root input folder    |
+| /data/DataFactory/output/                        | DataFactory output root folder                |
+| /data/DataFactory/anonymized_output/             | DataFactory anonymized output root folder     |
+| /opt/DataFactory/dbproperties                    | DataFactory db properties folder              |
+| /opt/DataFactory/mipmap_mappings/preprocess_step | DataFactory preprocess step config root folder|
+| /opt/DataFactory/mipmap_mappings/capture_step    | DataFactory capture step config root folder   |
+| /opt/DataFactory/mipmap_mappings/harmonize_step  | DataFactory harmonize step config root folder |
+| /opt/DataFactory/mipmap_mappings/imaging_step    | DataFactory imaging mapping config folder     |
+| /opt/DataFactory/export_step                     | DataFactory export sql scripts folder         |
+
+
+Change the group ownership of DataFactory installation folder `/opt/DataFactory` to the `datafactory` group and give write and execute rights:
+
+```shell
+sudo chgrp -R datafactory /opt/DataFactory
+sudo chmod -R g+xw /opt/DataFactory
+```
 
 Update the parameteres in config.json file (Hospital name, docker postgres container details etc).
 Then run:
 
 ```shell
- ./update_files.py
+$ sudo ./update_files.py
 ```
 
-Then create the DataFactory databases
+Then change the group ownershop of the DataFactory data folder to the `datafactory` group and give writing permitions:
+```shell
+sudo chgrp -R datafactory <datafactory data folder>
+sudo chmod -R g+w <datafactory data folder>
+```
+
+The default datafactory data folder is `/data/DataFactory`
+
+
+### Create the DataFactory databases
 
 **Caution!** The following creation script drops any prexisting DataFactory database. Skip this step if there is no such need *i.e. when importing a second batch of hospital data.* 
 
@@ -104,13 +150,19 @@ $ sh build_dbs.sh harmonize
 
 The mapping configuration files are placed in subfolders in the folder `/opt/DataFactory/mipmap_mappings`.
 
-For the preprocess step create a new folder in `/preprocess_step` and name it accordingly (ie `1` if is the first version of this configuration) and then place the configuration files in.
+For the preprocess step create a new folder in `/preprocess_step` and name it accordingly (ie `config1` if is the first version of this configuration) and then place the configuration files in. 
 
-For the capture step create a new folder in `/capture_step` and name it accordingly (ie `1` if is the first version of this configuration) and then place the configuration files in.
+For the capture step create a new folder in `/capture_step` and name it accordingly (ie `config1` if is the first version of this configuration) and then place the configuration files in.
 
-For the harmonize step create a new folder in `/harmonize_step` and name it accordingly (ie `1` if is the first version of this configuration) and then place the configuration files in.
+For the harmonize step create a new folder in `/harmonize_step` and name it accordingly (ie `config1` if is the first version of this configuration) and then place the configuration files in.
 
-**Please change the rights of the folders in order to be readable and writable for the `datafactory` user group.**
+**Please change the rights of the folders in order to be readable, writable and executable for the `datafactory` user group.**
+
+```shell
+chmod g+wrx -R <configuration foler>
+```
+
+**Caution** When using **Filezilla** for ftp uploading the configuration files, change the tranfer setting to binary! Otherwise the line endings are changed and scripts will be broken!  
 
 ## DataFactory data folders
 
@@ -128,11 +180,11 @@ The niftii files must be placed in a subfolder in the folder `/data/DataFactory/
 In DataFactory folder run
 
 ```shell
-./df.py mri -s <input folder>
+./df.py mri --input_folder <input folder>
 ```
 
-As `input folder` give the subfolder name in `/data/DataFactory/MRI/dicom/raw/` and not the whole path. For example just `1`, `v1` or `2` etc.
-The output of this step is a `volumes.csv` file with the volumetric data of all the MRIs. This file is stored in a subfolder with the same name given as `input_folder` in the folder `/data/DataFactory/imaging`. For example `/data/DataFactory/imaging/1`.  
+As `input folder` give the subfolder name in `/data/DataFactory/MRI/dicom/raw/` and not the whole path. For example just `batch1`, `batch2` etc.
+The output of this step is a `volumes.csv` file with the volumetric data of all the MRIs. This file is stored in a subfolder with the same name given as `input_folder` in the folder `/data/DataFactory/imaging`. For example `/data/DataFactory/imaging/batch1`.  
 
 
 #### Importing the volumetric brain features into the i2b2 capture database
@@ -142,10 +194,10 @@ In the folder where the output file `volumes.csv` is stored from the previous st
 Then, in DataFactory folder run
 
 ```shell
-./df.py imaging -s <input folder>
+./df.py ingest imaging  --input_folder <input folder>
 ```
 
-As `input folder` give just the subfolder name in `/data/DataFactory/imaging` and not the whole path. For example just `1`, `v1` or `2` etc.
+As `input folder` give just the subfolder name in `/data/DataFactory/imaging` and not the whole path. For example just `batch1`, `v1` or `batch2` etc.
 
 ### EHR pipeline
 
@@ -154,42 +206,40 @@ As `input folder` give just the subfolder name in `/data/DataFactory/imaging` an
 In DataFactory folder run
 
 ```shell
-./df.py preprocess -s <input folder> -c <mapping config folder>
+./df.py ingest ehr preprocess --input_folder <input folder> --config_folder <mapping config folder>
 ```
 
-As `input folder` and `mapping config folder` we give just the corresponding subfolder name and not the whole path. `Input folder` is where the ehr data files are stored and `mapping config folder` is where the mapping configuration files are stored. Auxiliary files are created in the same folder where the ehr csv files are located (for example in `/data/DataFactory/EHR/input/1` if we have used as input folder the name `1`)
+As `input folder` and `mapping config folder` we give just the corresponding subfolder name and not the whole path. `Input folder` is where the ehr data files are stored and `mapping config folder` is where the mapping configuration files are stored. Auxiliary files are created in the same folder where the ehr csv files are located (for example in `/data/DataFactory/EHR/input/batch1` if we have used as input folder the name `batch1`)
 
 #### Capture step
 
 In DataFactory folder run
 
 ```shell
-./df.py capture -s <input folder> -c <mapping config folder>
+./df.py ingest ehr capture --input_folder <input folder> --config_folder <mapping config folder>
 ```
 
 As `input folder` and `mapping config folder` we give just the corresponding subfolder name and not the whole path. `Input folder` is where the data files are stored and `mapping config folder` is where the mapping configuration files are stored.
 
-### Harmonization step
+#### Harmonization step
 
 In DataFactory folder run
 
 ```shell
-./df.py harmonize -c <mapping config folder>
+./df.py ingest ehr harmonize --config_folder <mapping config folder>
 ```
 
-As `mapping config folder` we give just the corresponding subfolder name and not the whole path. (i.e. `1`, `2` etc).`mapping config folder` is where the mapping configuration files are stored.
+As `mapping config folder` we give just the corresponding subfolder name and not the whole path. (i.e. `config1`, `config2` etc).`mapping config folder` is where the mapping configuration files are stored.
 
 ### Export flat csv
 
 In DataFactory folder run
 
 ```shell
-./df.py export -o <output folder> (--csv_name <flat csv name>) --strategy <flattening method> --dataset <string value>
+./df.py export  -s, --strategy <flattening method> -d, --dataset <string value> [--csv_name <flat csv name>] [--local] <output folder>
 ```
 
-As `output folder` we give just the folder name and not the whole path where the flat csv file is created.
-`--csv_name` (optional) if it is given, it overrides the defalut strategy's flat csv name with the given value.
-`--strategy` we declare the csv flattening method. The choices (defined in config.json) are the following:
+`-s, --strategy` we declare the csv flattening method. The choices (defined in config.json) are the following:
 
            1. 'mindate': For each patient, export one row with all information related to her first visit
            
@@ -202,44 +252,58 @@ As `output folder` we give just the folder name and not the whole path where the
                
            4. 'longitude': For each patient, export all available information.
 `--dataset` we declare the value that is going to be filled in the final csv under the column 'Dataset'.
+`--csv_name` (optional) if it is given, it overrides the defalut strategy's flat csv name (this is declared in config.json) with the given value.
+`--local` is a boolean option and when is present, the flat csv is exported from the `i2b2 capture` database with the hospital's local variables only without any CDEs.
+As `output folder` we give just the folder name and not the whole path where the flat csv file is created.
 
 ### Anonymization
 
 For Anonymization we have 2 options:
 
-1. Copy the i2b2 harmonized db and anonymize it, and then export the flat csv with a given strategy.
+1. (db) Copy the i2b2 harmonized db and anonymize it, and then export the flat csv with a given strategy.
 
-2. Anonymize a previously exported flattened csv.
+2. (csv) Anonymize a previously exported flattened csv.
 
 
 Also, there are currently 2 anonymization hash methods: **md5** and **sha224**. We can declare which of those 2 methods is going to be used in the DataFactory anonymization step by updating the `hash_method` field in `config.json` file.
 
-For the case `1` , in DataFactory folder run:
+For the case `1 (db)` , in DataFactory folder run:
 
 ```shell
-./df.py anonymize -m db -o <anon output folder>  (--csv_name <csv file name>) --strategy <flattening method>  --dataset <string value>
+./df.py anonymize db -s, --strategy <flattening method>  --hash_function <hash_method> -d, --dataset <string value> [--csv_name <csv file name>] <output_folder>  
 ```
 
-`-o` we give just the folder name (not the whole path) where the output anonymized csv will be placed. This folder is located in `/data/DataFactory/anonymized_output/`
+`-s, --strategy` we declare the csv flattening method (look export step).
 
-`--csv_name` (optional) if it is given, it overrides the defalut strategy's flat csv name with the given value.
+`--hash_function` we declare the hash funtion that is goint to be used for anonymization. 
 
-`--strategy` we declare the csv flattening method.
+`-d, --dataset` we declare the value that is going to be filled in the final csv under the column 'Dataset'.
 
-`--dataset` we declare the value that is going to be filled in the final csv under the column 'Dataset'.
+`--csv_name` (optional) if it is given, it overrides the defalut strategy's flat csv name (this is declared in config.json) with the given value.
 
-For the  case `2`, in DataFactory folder run:
+`output_folder` we give just the folder name (not the whole path) where the output anonymized csv will be placed. This folder is located in `/data/DataFactory/anonymized_output/`
+
+For the  case `2 (csv)`, in DataFactory folder run:
 
 ```shell
-./df.py anonymize -m csv -s <source csv folder> --csv_anon <input csv file name> -o <anon output folder> --csv_name <output csv file name>
+./df.py anonymize csv  --hash_function <hash method> -d, --dataset <string value> --csv_name <anonymized csv file name> <source csv path> <output_folder>
 ```
 
-As `anon output folder` in `-o` keyword,  we give just the folder name and not the whole path (for example `1`).
+--`hash_function` we declare the hash funtion that is goint to be used for anonymization. 
 
-`-s` we give the folder name, located in `/data/DataFactory/output`, which contains the input flat csv.
+`-d, --dataset` we declare the value that is going to be filled in the final csv under the column 'Dataset'.
 
-`--csv_anon` we give the input flat csv which is going to be anonymized.
+`--csv_name` we give the anonymized csv file name
 
-`-o` we give just the folder name (not the whole path) where the output anonymized csv will be placed. This folder is located in `/data/DataFactory/anonymized_output/`
+`source csv path` the filepath of the input csv that is going to be anonymized
 
-`--csv_name` we give the final anonymized csv name.
+`output_folder` we give just the folder name (not the whole path) where the output anonymized csv will be placed. This folder is located in `/data/DataFactory/anonymized_output/`
+
+
+### Interactive mode 
+
+The user can execute the ehr pipeline steps (preprocess, capture, harmonize, export) interectively through user prompts in terminal. Currently, the interactive mode does not support the mri step. 
+
+```shell
+./df.py interactive
+```
