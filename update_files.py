@@ -90,13 +90,13 @@ def create_df_data_folders(config):
     df_nmm_nifti_raw_input = config['mri']['input_folders']['nifti']['raw']
     os.makedirs(df_nmm_nifti_raw_input, exist_ok=True)
 
-    df_nmm_nifti_input = config['mri']['input_folders']['nifti']['root']
+    df_nmm_nifti_input = config['mri']['input_folders']['nifti']['organized']
     os.makedirs(df_nmm_nifti_input, exist_ok=True)
 
     df_nmm_dicom_raw_input = config['mri']['input_folders']['dicom']['raw']
     os.makedirs(df_nmm_dicom_raw_input, exist_ok=True)
 
-    df_nmm_dicom_input = config['mri']['input_folders']['dicom']['root']
+    df_nmm_dicom_input = config['mri']['input_folders']['dicom']['organized']
     os.makedirs(df_nmm_dicom_input, exist_ok=True)
 
     df_nmm_spm12_output = config['mri']['output_folders']['spm12']

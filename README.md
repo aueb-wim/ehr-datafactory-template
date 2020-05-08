@@ -70,18 +70,20 @@ The `config.json` contains the following folder structure as default.
 | Path                                             | Description                                   |
 | ------------------------------------------------ | --------------------------------------------- |
 | /data/DataFactory                                | DataFactory data folder                       |
-| /data/DataFactory/EHR                            | DataFactory EHR data root input folder        |
-| /data/DataFactory/MRI/dicom/raw                  | DataFactory DICOM raw data root input folder  |
-| /data/DataFactory/MRI/nifti/raw                  | DataFactory NIFTI raw data root input folder  |
-| /data/DataFactory/imaging                        | DataFactory imaging data root input folder    |
-| /data/DataFactory/output/                        | DataFactory output root folder                |
-| /data/DataFactory/anonymized_output/             | DataFactory anonymized output root folder     |
-| /opt/DataFactory/dbproperties                    | DataFactory db properties folder              |
-| /opt/DataFactory/mipmap_mappings/preprocess_step | DataFactory preprocess step config root folder|
-| /opt/DataFactory/mipmap_mappings/capture_step    | DataFactory capture step config root folder   |
-| /opt/DataFactory/mipmap_mappings/harmonize_step  | DataFactory harmonize step config root folder |
-| /opt/DataFactory/mipmap_mappings/imaging_step    | DataFactory imaging mapping config folder     |
-| /opt/DataFactory/export_step                     | DataFactory export sql scripts folder         |
+| /data/DataFactory/EHR                            | EHR data root input folder                    |
+| /data/DataFactory/MRI/dicom/raw                  | DICOM raw data root input folder              |
+| /data/DataFactory/MRI/nifti/organized            | DICOM root input folder with organized files  |
+| /data/DataFactory/MRI/nifti/raw                  | NIFTI raw data root input folder              |
+| /data/DataFactory/MRI/nifti/organized            | NIFTI root input folder with organized files  |
+| /data/DataFactory/imaging                        | imaging data root input folder                |
+| /data/DataFactory/output/                        | output root folder                            |
+| /data/DataFactory/anonymized_output/             | anonymized output root folder                 |
+| /opt/DataFactory/dbproperties                    | db properties folder                          |
+| /opt/DataFactory/mipmap_mappings/preprocess_step | preprocess step config root folder            |
+| /opt/DataFactory/mipmap_mappings/capture_step    | capture step config root folder               |
+| /opt/DataFactory/mipmap_mappings/harmonize_step  | harmonize step config root folder             |
+| /opt/DataFactory/mipmap_mappings/imaging_step    | imaging mapping config folder                 |
+| /opt/DataFactory/export_step                     | export sql scripts folder                     |
 
 
 Change the group ownership of DataFactory installation folder `/opt/DataFactory` to the `datafactory` group and give write and execute rights:
@@ -98,13 +100,23 @@ Then run:
 $ sudo ./update_files.py
 ```
 
-Then change the group ownershop of the DataFactory data folder to the `datafactory` group and give writing permitions:
+Then change the group ownership of the DataFactory data folder to the `datafactory` group and give writing permitions:
 ```shell
 sudo chgrp -R datafactory <datafactory data folder>
 sudo chmod -R g+w <datafactory data folder>
 ```
 
 The default datafactory data folder is `/data/DataFactory`
+
+### LORIS-for-MIP setup (optional)
+
+If we want to add MRI Quality Control functionality to the MIP's DataFactory (as an extra step prior to the MRI volumetric brain feature extraction pipeline), we have the option of installing [LORIS-for-MIP](https://github.com/HBPMedical/LORIS-for-MIP). Please refer to the repo's README for further information and installation instructions. 
+
+After installing the LORIS-for-MIP, we must create a soft link between DataFactory's folder that contains the batches of organized NIFTI files, and the output folder of LORIS-for-MIP. Do do so, we give in the command line:
+
+```shell
+ln -s /data/DataFactory/MRI/nifti/organized /data/LORIS/nifti_out
+```
 
 
 ### Create the DataFactory databases
@@ -166,10 +178,11 @@ chmod g+wrx -R <configuration foler>
 
 ## DataFactory data folders
 
-The ehr files must be placed in a subfolder in the folder `/data/DataFactory/EHR/input` and named accordingly  (ie `1` if is the first batch of data)
-Please check the documentation for more information about the ehr files in the repository where the hospital's mapping tasks configuration files are stored.
+The ehr files must be placed in a subfolder in the folder `/data/DataFactory/EHR/input` and named accordingly  (ie `batch1` if is the first batch of data)
 
-The niftii files must be placed in a subfolder in the folder `/data/DataFactory/MRI/nifti/raw` and named accordingly (For example, in case we have a first batch of MRIs, we place them into the folder `/data/DataFactory/MRI/dicom/raw/1`.). The files must contain full-brain T1-weighted MRI data in nifti format and named `<patient_id>_<visit_id>.nii`.
+The NIFTI files must be placed in a subfolder in the folder `/data/DataFactory/MRI/nifti/raw` and named accordingly (For example, in case we have a first batch of MRIs, we place them into the folder `/data/DataFactory/MRI/dicom/raw/batch1`.). The files must contain full-brain T1-weighted MRI data in nifti format and named `<patient_id>_<visit_id>.nii`.
+
+When [LORIS-for-MIP](https://github.com/HBPMedical/LORIS-for-MIP) is installed, we could use DICOM files instead of NIFTI as raw MRI input. Please refer to LORIS-for-MIP github repo for further information. 
 
 ## Running DataFactory pipeline
 
@@ -180,12 +193,13 @@ The niftii files must be placed in a subfolder in the folder `/data/DataFactory/
 In DataFactory folder run
 
 ```shell
-./df.py mri --input_folder <input folder>
+./df.py mri [--loris] --input_folder <input folder>
 ```
 
-As `input folder` give the subfolder name in `/data/DataFactory/MRI/dicom/raw/` and not the whole path. For example just `batch1`, `batch2` etc.
-The output of this step is a `volumes.csv` file with the volumetric data of all the MRIs. This file is stored in a subfolder with the same name given as `input_folder` in the folder `/data/DataFactory/imaging`. For example `/data/DataFactory/imaging/batch1`.  
+As `input folder` give the subfolder name in `/data/DataFactory/MRI/nifti/raw/` and not the whole path. For example just `batch1`, `batch2` etc.
+`--loris` is a boolean flag and when is present, give as `input folder` the subfolder name in `/data/DataFactory/MRI/nifti/organized`, just the name and not the whole path. When `--loris` flag is used, it is assumed that the NIFTI files are already organized by the LORIS-for-MIP module.  
 
+The output of this step is a `volumes.csv` file with the volumetric data of all the MRIs. This file is stored in a subfolder with the same name given as `input_folder` in the folder `/data/DataFactory/imaging`. For example `/data/DataFactory/imaging/batch1`.  
 
 #### Importing the volumetric brain features into the i2b2 capture database
 

@@ -86,8 +86,9 @@ def anonymize(ctx):
 @main.group()
 @click.option('--input_folder', prompt=True,
               type=click.Choice(MRI_INPUT))
-def mri(ctx, input_folder):
-    dfpipelines.mri_wrapper(ctx, input_folder)
+@click.option('--loris', is_flag=True)
+def mri(ctx, input_folder, loris):
+    dfpipelines.mri_wrapper(ctx, input_folder, from_loris=loris)
 
 
 @main.command()

@@ -11,7 +11,7 @@ DbConfig = collections.namedtuple('DbConfig',
                                   'container, port, user, pwd')
 
 
-def mri_wrapper(ctx, input_folder):
+def mri_wrapper(ctx, input_folder, from_loris=False):
 
     # get config.json
     config = ctx.obj['cfgjson']
@@ -23,7 +23,7 @@ def mri_wrapper(ctx, input_folder):
     mri_raw_root = os.path.abspath(config['mri']['input_folders']['nifti']['raw'])
     mri_raw_folder = os.path.join(mri_raw_root, input_folder)
 
-    mri_input_root = os.path.abspath(config['mri']['input_folders']['nifti']['root'])
+    mri_input_root = os.path.abspath(config['mri']['input_folders']['nifti']['organized'])
     mri_input_folder = os.path.join(mri_input_root, input_folder)
 
     imaging_root = os.path.abspath(config['mipmap']['input_folder']['imaging'])
@@ -32,10 +32,13 @@ def mri_wrapper(ctx, input_folder):
     mri_output_spm12_root = config['mri']['output_folders']['spm12']
     mri_output_spm12_folder = os.path.join(mri_output_spm12_root, input_folder)
 
-    # Reorganize mri files
-    LOGGER.info('Reorganizing nifti files in folder %s' % mri_input_folder)
-    run_cmd = 'python2 mri_nifti_reorganize/organizer.py %s %s' % (mri_raw_folder, mri_input_folder)
-    os.system(run_cmd)
+    if not from_loris:
+        # Reorganize mri files
+        LOGGER.info('Reorganizing nifti files in folder %s' % mri_input_folder)
+        run_cmd = 'python2 mri_nifti_reorganize/organizer.py %s %s' % (mri_raw_folder, mri_input_folder)
+        os.system(run_cmd)
+    else:
+        LOGGER.info('Skipping NIFTI reorganization step, files already organized by LORIS-for-MIP')
 
     # run matlab spm12 script
 

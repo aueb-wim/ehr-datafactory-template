@@ -82,11 +82,11 @@
         "input_folders": {
             "nifti": {
                 "raw" : "/data/DataFactory/MRI/nifti/raw",
-                "root": "/data/DataFactory/MRI/nifti"
+                "organized": "/data/DataFactory/MRI/nifti/organized"
             },
             "dicom": {
                 "raw": "/data/DataFactory/MRI/dicom/raw",
-                "root": "/data/DataFactory/MRI/dicom"
+                "organized": "/data/DataFactory/MRI/dicom/organized"
             }
         },
         "output_folders": {
