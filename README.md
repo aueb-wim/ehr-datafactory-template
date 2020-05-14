@@ -62,7 +62,13 @@ In case of `locale.Error: unsupported locale setting` give the below command and
 ```shell
 export LC_ALL=C
 ```
+### Data Factory reserved ports
 
+* 55432: PostgreSQL container
+* 8082: MySQL 5.7 container for LORIS-for-MIP (DF optional feature)
+* 8088: apache-php container hosting LORIS (DF optional feature)
+
+Those ports can be changed in the configuration. The PostgreSQL container port can be changed in the `config.json`. The LORIS-for-MIP ports can be changed in the docker-compose.yml file (see LORIS-for-MIP readme file)
 ### Data Factory Folders
 
 The `config.json` contains the following folder structure as default.
