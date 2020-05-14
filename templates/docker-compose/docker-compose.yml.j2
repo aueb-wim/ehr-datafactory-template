@@ -33,7 +33,7 @@ services:
     container_name: "i2b2-setup"
     command: "upgrade head"
     external_links:
-      - "{{ container_name }}:df_postgres"
+      - "{{ postgresql_container }}:df_postgres"
     environment:
       - DB_URL=postgresql://{{ postgres_user }}:{{ postgres_pwd }}@df_postgres:5432/{{ capture_db }}
     network_mode: bridge
@@ -44,7 +44,7 @@ services:
     container_name: "i2b2-setup-harmonized"
     command: "upgrade head"
     external_links:
-      - "{{ container_name }}:df_postgres"
+      - "{{ postgresql_container }}:df_postgres"
     environment:
       - DB_URL=postgresql://{{ postgres_user }}:{{ postgres_pwd }}@df_postgres:5432/{{ harmonize_db}}
     network_mode: bridge
@@ -74,6 +74,6 @@ services:
       - i2b2_db_harmonized_user={{ postgres_user }}
       - i2b2_db_harmonized_password={{ postgres_pwd }}
     external_links:
-      - "{{ container_name }}:df_postgres"
+      - "{{ postgresql_container }}:df_postgres"
     command: ['/opt/map/run.sh']
     network_mode: bridge

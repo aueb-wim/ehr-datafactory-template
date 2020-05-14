@@ -4,10 +4,10 @@
 db_mipmap={{ mipmap_db }}
 db_capture={{ capture_db }}
 db_harmonized={{ harmonize_db }}
-container_name={{ container_name }} # <update with postgres name container>
-db_user={{ db_user }}
-db_pwd={{ db_pwd }}
-db_port={{ db_port }}
+container_name={{ postgresql_container }} # <update with postgres name container>
+db_user={{ postgres_user }}
+db_pwd={{ postgres_pwd }}
+db_port={{ postgres_port }}
 
 if [ -z $1 ]; then
     echo "No Argument given. Exiting...."

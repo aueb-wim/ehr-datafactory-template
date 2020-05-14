@@ -18,8 +18,8 @@ def update_compose(configdict):
     env_path = os.path.join(my_path, 'templates')
     env = Environment(loader=FileSystemLoader(env_path))
     template = env.get_template(os.path.join('docker-compose',
-                                             'docker-compose.yml'))
-    vars = {'container_name': d_config['container_name'],
+                                             'docker-compose.yml.j2'))
+    vars = {'postgresql_container': d_config['container_name'],
             'postgres_user': d_config['postgres_user'],
             'postgres_pwd': d_config['postgres_pwd'],
             'postgres_port': d_config['postgres_port'],
@@ -44,7 +44,7 @@ def update_image_mapping(configdict):
     LOGGER.info('Hospital name is %s' % configdict['hospital_name'])
     LOGGER.info('MRI visit file name is %s' % imgconfig['input_files'][1])
     hospital_name = '\"' + configdict['hospital_name'] + '\"'
-    vars = {'visit_file': imgconfig['input_files'][1],
+    vars = {'mri_visit_file': imgconfig['input_files'][1],
             'hospital_name': hospital_name}
     patientprop_fp = os.path.join(img_mapping_folder,
                                  'patientmapping.properties')
@@ -61,14 +61,14 @@ def update_bash_scripts(config):
     env_path = os.path.join(my_path, 'templates')
     env = Environment(loader=FileSystemLoader(env_path))
     template = env.get_template(os.path.join('bash_scripts',
-                                             'build_dbs.sh'))
+                                             'build_dbs.sh.j2'))
     vars = {'mipmap_db': d_config['mipmap_db'],
             'capture_db': d_config['capture_db'],
             'harmonize_db': d_config['harmonize_db'],
-            'container_name': d_config['container_name'],
-            'db_user': d_config['postgres_user'],
-            'db_pwd': d_config['postgres_pwd'],
-            'db_port': d_config['postgres_port']
+            'postgresql_container': d_config['container_name'],
+            'postgres_user': d_config['postgres_user'],
+            'postgres_pwd': d_config['postgres_pwd'],
+            'postgres_port': d_config['postgres_port']
             }
     template.stream(vars).dump('build_dbs.sh')
 
