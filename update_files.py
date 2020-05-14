@@ -20,9 +20,9 @@ def update_compose(configdict):
     template = env.get_template(os.path.join('docker-compose',
                                              'docker-compose.yml.j2'))
     vars = {'postgresql_container': d_config['container_name'],
-            'postgres_user': d_config['postgres_user'],
-            'postgres_pwd': d_config['postgres_pwd'],
-            'postgres_port': d_config['postgres_port'],
+            'postgresql_user': d_config['postgres_user'],
+            'postgresql_pwd': d_config['postgres_pwd'],
+            'postgresql_port': d_config['postgres_port'],
             'capture_db': d_config['capture_db'],
             'harmonize_db': d_config['harmonize_db'],
             'mipmap_db': d_config['mipmap_db']
@@ -66,9 +66,9 @@ def update_bash_scripts(config):
             'capture_db': d_config['capture_db'],
             'harmonize_db': d_config['harmonize_db'],
             'postgresql_container': d_config['container_name'],
-            'postgres_user': d_config['postgres_user'],
-            'postgres_pwd': d_config['postgres_pwd'],
-            'postgres_port': d_config['postgres_port']
+            'postgresql_user': d_config['postgres_user'],
+            'postgresql_pwd': d_config['postgres_pwd'],
+            'postgresql_port': d_config['postgres_port']
             }
     template.stream(vars).dump('build_dbs.sh')
 
