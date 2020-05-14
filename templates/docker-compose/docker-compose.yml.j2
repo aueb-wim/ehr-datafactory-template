@@ -35,7 +35,7 @@ services:
     external_links:
       - "{{ postgresql_container }}:df_postgres"
     environment:
-      - DB_URL=postgresql://{{ postgres_user }}:{{ postgres_pwd }}@df_postgres:5432/{{ capture_db }}
+      - DB_URL=postgresql://{{ postgresql_user }}:{{ postgresql_pwd }}@df_postgres:5432/{{ capture_db }}
     network_mode: bridge
 
 
@@ -46,7 +46,7 @@ services:
     external_links:
       - "{{ postgresql_container }}:df_postgres"
     environment:
-      - DB_URL=postgresql://{{ postgres_user }}:{{ postgres_pwd }}@df_postgres:5432/{{ harmonize_db}}
+      - DB_URL=postgresql://{{ postgresql_user }}:{{ postgresql_pwd }}@df_postgres:5432/{{ harmonize_db}}
     network_mode: bridge
 
 
@@ -61,18 +61,18 @@ services:
       - mipmap_db_host=df_postgres
       - mipmap_db_port=5432
       - mipmap_db_name={{ mipmap_db }}
-      - mipmap_db_user={{ postgres_user }}
-      - mipmap_db_password={{ postgres_pwd }}
+      - mipmap_db_user={{ postgresql_user }}
+      - mipmap_db_password={{ postgresql_pwd }}
       - i2b2_db_host=df_postgres
       - i2b2_db_port=5432
       - i2b2_db_name={{ capture_db }}
-      - i2b2_db_user={{ postgres_user }}
-      - i2b2_db_password={{ postgres_pwd }}
+      - i2b2_db_user={{ postgresql_user }}
+      - i2b2_db_password={{ postgresql_pwd }}
       - i2b2_db_harmonized_host=df_postgres
       - i2b2_db_harmonized_port=5432
       - i2b2_db_harmonized_name={{ harmonize_db}}
-      - i2b2_db_harmonized_user={{ postgres_user }}
-      - i2b2_db_harmonized_password={{ postgres_pwd }}
+      - i2b2_db_harmonized_user={{ postgresql_user }}
+      - i2b2_db_harmonized_password={{ postgresql_pwd }}
     external_links:
       - "{{ postgresql_container }}:df_postgres"
     command: ['/opt/map/run.sh']
