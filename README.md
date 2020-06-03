@@ -54,7 +54,7 @@ You can use `$ docker run hello-world`  to check if you can run docker without s
 In /opt/DataFactory folder run:
 
 ```shell
-pip3 install -r --user requirements.txt 
+pip3 install -r requirements.txt 
 ```
 
 In case of `locale.Error: unsupported locale setting` give the below command and rerun the above pip command:
@@ -135,14 +135,9 @@ for dropping and creating all databases at once
 $ sh build_dbs.sh all
 ```
 
-Ignore any warning messages about variables `mipmap_map`, `mipmap_source` and `mipmap_pgproperties`. If everything gone well you will see the following output:
+Ignore any warning messages about variables `mipmap_map`, `mipmap_source` and `mipmap_pgproperties`. 
 
-```shell
-i2b2-setup-harmonized exited with code 0
-i2b2-setup exited with code 0
-```
-
-You can use the psql terminal tool or pgAdmin to recheck if the three DataFactory databases have been created.
+You can use the psql terminal tool or pgAdmin to recheck if the three DataFactory databases have been created (`mipmap`, `i2b2_capture`, `i2b2_harmonized`).
 
 If you want to create a specific database give the following command:
 
