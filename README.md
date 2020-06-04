@@ -159,9 +159,10 @@ for creating an empty i2b2 harmonize database
 $ sh build_dbs.sh harmonize
 ```
 
-## Mapping upload
+## Mapping configuration files creation and upload
+For creating the mapping configuration files, we use a [mapping-desinging-template](https://github.com/HBPMedical/ehr-mapping-design-template.git) in a local machine (not in the hospital node) with a graphical desktop environment. Please refer to the [DataFactory's User Guide](https://mip.ebrains.eu/documentation/User%20Manuals/6) for further instructions.
 
-The mapping configuration files are placed in subfolders in the folder `/opt/DataFactory/mipmap_mappings`.
+When, the mapping configuration files are ready, we upload them to the hospital node and placed them in the designated subfolders inside the folder `/opt/DataFactory/mipmap_mappings`.
 
 For the preprocess step create a new folder in `/preprocess_step` and name it accordingly (ie `config1` if is the first version of this configuration) and then place the configuration files in. 
 
