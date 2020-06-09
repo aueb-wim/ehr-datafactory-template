@@ -68,7 +68,7 @@ def sql_export_csv(output_folder, strategy,
     # try to delete any existing flattened csv in postgres container
     try:
         cmd_rm_csv = 'rm -rf /tmp/%s' % strategy.csv_name
-        container.exec_run(cmd_rm_csv)
+        container.exec_run(cmd_rm_csv, stream=True)
     except:
         pass
     # Copy the sql script to the postgres container
@@ -79,7 +79,7 @@ def sql_export_csv(output_folder, strategy,
                                                   i2b2_name,
                                                   sql_script)
     LOGGER.info('Excecuting pivoting sql script...')
-    output = container.exec_run(cmd_sql)
+    output = container.exec_run(cmd_sql, stream=True)
     for out in output:
         LOGGER.info(out)
 
@@ -118,10 +118,10 @@ def anonymize_db(i2b2_source, i2b2_anonym, anonym_sql,
     cmd_drop_db = 'psql -U %s -d postgres -c "DROP DATABASE IF EXISTS %s;"' % (db_user,
                                                                               i2b2_anonym)
     LOGGER.info('Dropping previous anonymized i2b2 database')
-    container.exec_run(cmd_drop_db)
+    container.exec_run(cmd_drop_db, stream=True)
     cmd_create_db = 'psql -U %s -d postgres -c "CREATE DATABASE %s WITH TEMPLATE %s;"' % (db_user, i2b2_anonym, i2b2_source)
     LOGGER.info('Copying i2b2 harmonized db')
-    container.exec_run(cmd_create_db)
+    container.exec_run(cmd_create_db, stream=True)
     # copy the anonymization sql to the postgres container
     sql_script_path = os.path.join(anonymization_folder, anonym_sql)
     copy_to(sql_script_path, '/tmp/', container)
@@ -130,14 +130,14 @@ def anonymize_db(i2b2_source, i2b2_anonym, anonym_sql,
     cmd_sql = 'psql -q -U %s -d %s -f /tmp/%s' % (db_user,
                                                   i2b2_anonym,
                                                   anonym_sql)
-    container.exec_run(cmd_sql)
+    container.exec_run(cmd_sql,stream=True)
     # run the anonymization function
-    LOGGER.info('Excecuting anonymization sql script...')
+    LOGGER.info('Executing anonymization sql script...')
     hash_function = "'" + hash_function + "'"
     cmd_run = 'psql -U %s -d %s -c "SELECT anonymize_db(%s);"' % (db_user,
                                                                    i2b2_anonym,
                                                                    hash_function)
-    container.exec_run(cmd_run)
+    container.exec_run(cmd_run, stream=True)
     LOGGER.info('Anonymized i2b2 db is created.')
 
 

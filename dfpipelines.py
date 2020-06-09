@@ -55,7 +55,6 @@ def mri_wrapper(ctx, input_folder, from_loris=False):
     os.system(run_cmd)
 
 
-
 def export_flat_csv(ctx, output_folder, strategy, local, dataset, csv_name=None):
 
     # get config.json
@@ -74,14 +73,12 @@ def export_flat_csv(ctx, output_folder, strategy, local, dataset, csv_name=None)
     click.echo('Flat csv is created in output folder: %s' % output_folder)
 
 
- 
 def ehr_preprocess(ctx, input_folder, config_folder):
     """
     Creates the auxilary files for the capture DF EHR step.
     """
 
     pre_capture(ctx, 'preprocess', input_folder, config_folder)
-
 
 
 def ehr_capture(ctx, input_folder, config_folder):
@@ -113,7 +110,6 @@ def ehr_harmonize(ctx, config_folder):
     run_docker_compose(input_root, config_path, dbprop_folder)
 
 
-
 def ingest_imaging(ctx, input_folder):
     """
     Arguments
@@ -136,7 +132,6 @@ def ingest_imaging(ctx, input_folder):
     run_docker_compose(input_path, config_path, dbprop_folder)
 
 
-
 def export_anonymized_db(ctx, output_folder, hash_function, strategy, dataset, csv_name=None):
 
     # load config.json and db configuration
@@ -157,7 +152,6 @@ def export_anonymized_db(ctx, output_folder, hash_function, strategy, dataset, c
                 csv_name=csv_name, anonymized=True)
 
     click.echo('Anonymized csv is created in output folder: %s' % output_folder)
-
 
 
 def export_anonymized_csv(ctx, input_path, output_folder, hash_function, csv_name, dataset):
